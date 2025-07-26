@@ -39,7 +39,7 @@
 	"scripts": {
 		"build": "unbuild",
 		"test": "vitest run",
-		"prepublishOnly": "pnpm run clean && pnpm run build && pnpm run test",
+		"prepublishOnly": "pnpm run test && pnpm run build",
 		"release": "npm publish"
 	},
 	"devDependencies": {
