@@ -3,6 +3,9 @@ import { Command } from "commander";
 import { mark, extract } from "./index";
 import { loadConfigFile, resolveExtractConfig, resolveMarkConfig } from "./config";
 import { CliExtractConfigType, CliMarkConfigType } from "./types";
+import packageJson from "../package.json";
+
+const version = packageJson.version;
 
 async function handleMark() {
   const options: CliMarkConfigType = program.opts();
@@ -43,8 +46,8 @@ async function handleAll() {
   if (options.staged) {
     config.staged = true;
   }
-  await mark(resolveMarkConfig(config));
-  await extract(resolveExtractConfig(config));
+  mark(resolveMarkConfig(config));
+  extract(resolveExtractConfig(config));
 }
 
 const program = new Command();
@@ -52,7 +55,7 @@ const program = new Command();
 program
   .name("i18n-mark")
   .description("Internationalization code processor")
-  .version("1.0.0");
+  .version(version);
   
 program
   .option("-c, --config <path>", "Config file path ")
