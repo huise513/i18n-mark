@@ -1,14 +1,26 @@
 {
 	"name": "i18n-mark",
 	"version": "0.1.1",
-	"description": "Internationalization code mark and extract",
+	"description": "Internationalization code mark and extract tool for JavaScript/TypeScript and Vue projects",
 	"keywords": [
 		"i18n",
 		"internationalization",
 		"mark",
-		"extract"
+		"extract",
+		"vue"
 	],
 	"license": "MIT",
+	"author": {
+		"name": "huise513"
+	},
+	"homepage": "https://github.com/huise513/i18n-mark#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/huise513/i18n-mark"
+	},
+	"bugs": {
+		"url": "https://github.com/huise513/i18n-mark/issues"
+	},
 	"type": "module",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.mjs",
@@ -18,13 +30,17 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
+	"engines": {
+		"node": ">=16.0.0"
+	},
 	"scripts": {
 		"build": "unbuild",
 		"test": "vitest run",
-		"prepublishOnly": "pnpm run build",
-		"release": "nrm use npm && npm publish && nrm use taobao"
+		"prepublishOnly": "pnpm run clean && pnpm run build && pnpm run test",
+		"release": "npm publish"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.27.4",
