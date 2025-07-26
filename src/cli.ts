@@ -7,45 +7,35 @@ import packageJson from "../package.json";
 
 const version = packageJson.version;
 
-async function handleMark() {
-  const options: CliMarkConfigType = program.opts();
+async function mergeConfig(options: CliExtractConfigType | CliMarkConfigType) {
   const config = await loadConfigFile(options.config);
   if (options.entry) {
     config.entry = options.entry;
   }
+  if ('output' in options && options.output) {
+    config.output = options.output;
+  }
   if (options.staged) {
     config.staged = true;
   }
+  return config;
+}
+
+async function handleMark() {
+  const options: CliMarkConfigType = program.opts();
+  const config = await mergeConfig(options);
   mark(resolveMarkConfig(config));
 }
 
 async function handleExtract() {
   const options: CliExtractConfigType = program.opts();
-  const config = await loadConfigFile(options.config);
-  if (options.entry) {
-    config.entry = options.entry
-  }
-  if (options.output) {
-    config.output = options.output
-  }
-  if (options.staged) {
-    config.staged = true;
-  }
+  const config = await mergeConfig(options);
   extract(resolveExtractConfig(config));
 }
 
 async function handleAll() {
-  const options: CliExtractConfigType = program.opts();
-  const config = await loadConfigFile(options.config);
-  if (options.entry) {
-    config.entry = options.entry
-  }
-  if (options.output) {
-    config.output = options.output
-  }
-  if (options.staged) {
-    config.staged = true;
-  }
+  const options: CliMarkConfigType & CliExtractConfigType = program.opts();
+  const config = await mergeConfig(options);
   mark(resolveMarkConfig(config));
   extract(resolveExtractConfig(config));
 }
@@ -56,7 +46,7 @@ program
   .name("i18n-mark")
   .description("Internationalization code processor")
   .version(version);
-  
+
 program
   .option("-c, --config <path>", "Config file path ")
   .option("-e, --entry <path>", "Entry directory path ")

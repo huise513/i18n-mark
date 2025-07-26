@@ -3,12 +3,13 @@ import {
   NodeTypes,
   TemplateChildNode,
 } from "@vue/compiler-core";
-import { ExtractConfigType, I18nEntity } from "./types";
+import { ExtractConfigType, I18nEntryType } from "./types";
 import { parse } from "@vue/compiler-sfc";
 import { extractFromJsCode } from "./extract-js";
+import { logger } from "./logger";
 
-export function extractFromVueCode(code: string, config: ExtractConfigType): I18nEntity[] {
-  const entries: I18nEntity[] = [];
+export function extractFromVueCode(code: string, config: ExtractConfigType): I18nEntryType[] {
+  const entries: I18nEntryType[] = [];
   const result = parse(code);
   let { template, script, scriptSetup } = result.descriptor;
 
@@ -26,7 +27,7 @@ export function extractFromVueCode(code: string, config: ExtractConfigType): I18
 
 function handlerTemplateAstNodes(
   astNodes: TemplateChildNode[],
-  entries: I18nEntity[],
+  entries: I18nEntryType[],
   config: ExtractConfigType
 ) {
   for (let i = 0; i < astNodes.length; i++) {
@@ -35,7 +36,7 @@ function handlerTemplateAstNodes(
   }
 }
 
-function handlerTemplateAst(astNode: TemplateChildNode, entries: I18nEntity[], config: ExtractConfigType) {
+function handlerTemplateAst(astNode: TemplateChildNode, entries: I18nEntryType[], config: ExtractConfigType) {
   switch (astNode.type) {
     case NodeTypes.ELEMENT:
       const { props, children } = astNode;
@@ -48,11 +49,12 @@ function handlerTemplateAst(astNode: TemplateChildNode, entries: I18nEntity[], c
       break;
     case NodeTypes.INTERPOLATION:
       entries.push(...extractFromJsCode(astNode.loc.source, config));
+      logger.codeMatch(astNode.loc.source)
       break;
   }
 }
 
-function handleElementProps(props: ElementNode["props"], entries: I18nEntity[], config: ExtractConfigType) {
+function handleElementProps(props: ElementNode["props"], entries: I18nEntryType[], config: ExtractConfigType) {
   for (let i = 0; i < props.length; i++) {
     const prop = props[i];
     switch (prop.type) {
@@ -70,6 +72,7 @@ function handleElementProps(props: ElementNode["props"], entries: I18nEntity[], 
                 } else {
                   entries.push(...extractFromJsCode(exp.loc.source, config));
                 }
+                logger.codeMatch(exp.loc.source)
               }
               break;
           }

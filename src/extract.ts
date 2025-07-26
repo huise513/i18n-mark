@@ -1,8 +1,8 @@
 import {
   ExtractConfigType,
-  I18nDiffReport,
-  I18nEntity,
-  KeyUsageMap,
+  I18nDiffReportType,
+  I18nEntryType,
+  KeyUsageMapType,
 } from "./types";
 import {
   existFile,
@@ -19,6 +19,7 @@ import {
   resolveExtractConfig,
 } from "./config";
 import { relative } from "node:path";
+import { logger } from "./logger";
 
 export function extract(options: Partial<ExtractConfigType>) {
   const resolveConfig = resolveExtractConfig(options);
@@ -30,26 +31,27 @@ export function extractFiles(
   filePaths: string[],
   config: ExtractConfigType
 ) {
-  const entries: I18nEntity[] = [];
-  console.log(`Found ${filePaths.length} files to extract`);
+  const entries: I18nEntryType[] = [];
+  logger.info(`Found ${filePaths.length} files to extract`);
   filePaths.forEach((filePath) => {
+    logger.fileStart(filePath);
     const code = getCodeByPath(filePath);
     let fn = extractFromJsCode;
     if (filePath.endsWith(".vue")) {
       fn = extractFromVueCode;
     }
     const list = fn(code, config);
-    list.forEach((v) => (v.filePath = filePath));
-    entries.push(...list);
     if (list.length) {
-      console.log(`Extract ${filePath}: ${list.length} entries`);
+      list.forEach((v) => (v.filePath = filePath));
+      entries.push(...list);
+      logger.fileProcessed(filePath);
     }
   });
-  console.log(`find ${entries.length} entries`);
   write2File(entries, config);
+  logger.success(`✅ Extract completed, found ${entries.length} entries`);
 }
 
-function write2File(entries: I18nEntity[], config: ExtractConfigType) {
+function write2File(entries: I18nEntryType[], config: ExtractConfigType) {
   const { output, langs, fileMapping } = config;
   const outpath = resolvePath(output);
   if (!existFile(outpath)) {
@@ -63,7 +65,7 @@ function write2File(entries: I18nEntity[], config: ExtractConfigType) {
   }
   const groups = groupEntriesByKey(entries);
   const diff = detectI18NDifferences(oldGroups, groups);
-  console.log("diff", diff);
+
   writeFileByCode(groupFilePath, JSON.stringify(groups, null, 2));
   langs.forEach((lang) => {
     let filePath = `${outpath}/${lang}.json`;
@@ -81,9 +83,11 @@ function write2File(entries: I18nEntity[], config: ExtractConfigType) {
     }
     writeFileByCode(filePath, JSON.stringify(data, null, 2));
   });
+  logger.codeNormal('Extract Add Keys', `${Object.keys(diff.addedKeys).length}`)
+  logger.codeNormal('Extract Remove Keys', `${Object.keys(diff.removedKeys).length}`)
 }
 
-function groupEntriesByKey(entries: I18nEntity[]): Record<string, string[]> {
+function groupEntriesByKey(entries: I18nEntryType[]): Record<string, string[]> {
   return entries.reduce((acc, entry) => {
     if (!entry.filePath) return acc;
     const relativePath = toUnixPath(relative(process.cwd(), entry.filePath));
@@ -99,12 +103,12 @@ function groupEntriesByKey(entries: I18nEntity[]): Record<string, string[]> {
 }
 
 function detectI18NDifferences(
-  oldKeys: KeyUsageMap,
-  newKeys: KeyUsageMap
-): I18nDiffReport {
+  oldKeys: KeyUsageMapType,
+  newKeys: KeyUsageMapType
+): I18nDiffReportType {
   const allKeys = new Set([...Object.keys(oldKeys), ...Object.keys(newKeys)]);
 
-  const result: I18nDiffReport = {
+  const result: I18nDiffReportType = {
     addedKeys: {},
     removedKeys: {},
     unchangedKeys: {},

@@ -1,8 +1,11 @@
+import { LogMode } from "./logger";
+
 export interface EntryConfigType {
   entry: string;
   ignore?: string[];
   extensions: string[];
-  staged: boolean
+  staged: boolean;
+  log?: LogMode;
 }
 
 export interface MarkConfigType extends EntryConfigType {
@@ -16,17 +19,17 @@ export interface ExtractConfigType extends EntryConfigType {
   i18nTag: string;
   output: string;
   langs: string[];
-  fileMapping: string
+  fileMapping: string;
 }
 
-export type ConfigType  = MarkConfigType & ExtractConfigType;
+export type ConfigType = MarkConfigType & ExtractConfigType;
 
-export interface I18nEntity {
+export interface I18nEntryType {
   key: string;
   text: string;
   variables: string[];
   line: number;
-  filePath?: string
+  filePath?: string;
 }
 
 export interface CliMarkConfigType {
@@ -34,6 +37,7 @@ export interface CliMarkConfigType {
   config?: string;
   staged?: boolean;
 }
+
 export interface CliExtractConfigType {
   entry?: string;
   config?: string;
@@ -41,14 +45,14 @@ export interface CliExtractConfigType {
   staged?: boolean;
 }
 
-export interface KeyUsageMap {
-  [key: string]: string[]; 
+export interface KeyUsageMapType {
+  [key: string]: string[];
 }
 
-export interface I18nDiffReport {
-  addedKeys: KeyUsageMap;
-  removedKeys: KeyUsageMap;
-  unchangedKeys: KeyUsageMap;
+export interface I18nDiffReportType {
+  addedKeys: KeyUsageMapType;
+  removedKeys: KeyUsageMapType;
+  unchangedKeys: KeyUsageMapType;
 }
 
 export interface MarkCodeOptionType {
@@ -57,3 +61,4 @@ export interface MarkCodeOptionType {
   ignoreComment?: string;
   i18nImportPath?: string;
 }
+

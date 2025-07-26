@@ -2,12 +2,14 @@ import { extname, isAbsolute } from "node:path";
 import { ConfigType, ExtractConfigType, MarkConfigType } from "./types";
 import { existFile, getCodeByPath, resolvePath } from "./utils";
 import { pathToFileURL } from "node:url";
+import { logger, LogMode } from "./logger";
 
 export const DEFAULT_CONFIG = {
   entry: "./src",
   ignore: ["**/node_modules/**", "**/dist/**"],
   extensions: ["js", "jsx", "ts", "tsx", "vue"],
   staged: false,
+  log: LogMode.NONE,
   i18nTag: "i18n",
   i18nImportPath: "",
   ignoreComment: "i18n-ignore",
@@ -17,44 +19,44 @@ export const DEFAULT_CONFIG = {
 }
 
 
-export function resolveMarkConfig(config: Partial<MarkConfigType>): ConfigType {
-  const mergeConfig = {
+// 通用配置验证函数
+function validateRequiredFields(config: any, requiredFields: string[]): void {
+  for (const field of requiredFields) {
+    if (!config[field]) {
+      throw new Error(`Missing required config: ${field}`);
+    }
+  }
+}
+
+// 通用配置解析函数
+function resolveConfig(config: Partial<ConfigType>, requiredFields: string[]): ConfigType {
+  const mergedConfig = {
     ...DEFAULT_CONFIG,
     ...config
+  };
+
+  validateRequiredFields(mergedConfig, requiredFields);
+
+  // 配置日志系统
+  const logMode = mergedConfig.log === 'file' ? LogMode.FILE : 
+                  mergedConfig.log === 'code' ? LogMode.CODE : LogMode.NONE;
+  logger.configure(logMode);
+
+  // 解析路径
+  mergedConfig.entry = resolvePath(mergedConfig.entry);
+  if (mergedConfig.output) {
+    mergedConfig.output = resolvePath(mergedConfig.output);
   }
-  if (!mergeConfig.entry) {
-    throw new Error("Missing required config: entry");
-  }
-  if (!mergeConfig.i18nTag) {
-    throw new Error("Missing required config: i18nTag");
-  }
-  mergeConfig.entry = resolvePath(mergeConfig.entry);
-  return mergeConfig
+
+  return mergedConfig;
+}
+
+export function resolveMarkConfig(config: Partial<MarkConfigType>): ConfigType {
+  return resolveConfig(config, ['entry', 'i18nTag']);
 }
 
 export function resolveExtractConfig(config: Partial<ExtractConfigType>): ConfigType {
-  const mergeConfig = {
-    ...DEFAULT_CONFIG,
-    ...config
-  }
-  if (!mergeConfig.entry) {
-    throw new Error("Missing required config: entry");
-  }
-  if (!mergeConfig.i18nTag) {
-    throw new Error("Missing required config: i18nTag");
-  }
-  if (!mergeConfig.output) {
-    throw new Error("Missing required config: output");
-  }
-  if (!mergeConfig.langs) {
-    throw new Error("Missing required config: langs");
-  }
-  if (!mergeConfig.fileMapping) {
-    throw new Error("Missing required config: fileMapping");
-  }
-  mergeConfig.entry = resolvePath(mergeConfig.entry);
-  mergeConfig.output = resolvePath(mergeConfig.output);
-  return mergeConfig
+  return resolveConfig(config, ['entry', 'i18nTag', 'output', 'langs', 'fileMapping']);
 }
 
 /**
@@ -77,9 +79,7 @@ export async function loadConfigFile(configPath?: string): Promise<ConfigType> {
   } else {
     // 如果没有传入路径，自动查找项目目录下的配置文件
     finalConfigPath = findConfigFile();
-
     if (!finalConfigPath) {
-      console.warn('not found config file, use default config');
       return DEFAULT_CONFIG
     }
   }

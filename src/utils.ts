@@ -4,6 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { execSync } from "node:child_process";
 import micromatch from "micromatch";
+import { logger } from "./logger";
 
 export function hasChinese(str: string) {
   return /[\u4e00-\u9fa5]/.test(str);
@@ -112,7 +113,7 @@ export function getStagedFiles() {
       .filter(Boolean)
       .map((file) => resolvePath(file));
   } catch (error) {
-    console.error("get staged files error:", error);
+    logger.error("Get staged files error: " + String(error));
     return [];
   }
 }

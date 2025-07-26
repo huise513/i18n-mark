@@ -1,15 +1,15 @@
 import { parse } from "@babel/parser";
 import traverse from "@babel/traverse";
-import { ExtractConfigType, I18nEntity } from "./types";
+import { ExtractConfigType, I18nEntryType } from "./types";
 import { generateVarName } from "./utils";
 
-export function extractFromJsCode(code: string, config: ExtractConfigType): I18nEntity[] {
+export function extractFromJsCode(code: string, config: ExtractConfigType): I18nEntryType[] {
   const ast = parse(code, {
     sourceType: "unambiguous",
     plugins: ["jsx", "typescript"],
   });
 
-  const entries: I18nEntity[] = [];
+  const entries: I18nEntryType[] = [];
   let variableCounter = 0;
   const { i18nTag } = config;
 

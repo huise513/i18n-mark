@@ -6,18 +6,24 @@ import {
   resolveMarkConfig,
 } from "./config";
 import { findEntryFilesPath, getCodeByPath, writeFileByCode } from "./utils";
+import { logger } from "./logger";
 
 export function mark(config?: Partial<MarkConfigType>) {
   const resolveConfig = resolveMarkConfig(config);
   const files = findEntryFilesPath(resolveConfig);
-  console.log(`Found ${files.length} files to mark`);
+  logger.info(`Found ${files.length} files to mark`);
+  let total = 0
   for (const filePath of files) {
-    markFile(filePath, resolveConfig);
+    const marked = markFile(filePath, resolveConfig);
+    if (marked) {
+      total++;
+    }
   }
-  console.log("Mark completed");
+  logger.success(`✅ Mark completed, Marked ${total} Files`);
 }
 
 export function markFile(filePath: string, option: MarkCodeOptionType) {
+  logger.fileStart(filePath);
   const ext = extname(filePath).slice(1);
   const code = getCodeByPath(filePath);
   let newCode = '';
@@ -28,6 +34,10 @@ export function markFile(filePath: string, option: MarkCodeOptionType) {
   }
   if (newCode) {
     writeFileByCode(filePath, newCode);
-    console.log(`Mark ${filePath} completed`);
+    logger.fileProcessed(filePath);
+    return true
+  } else {
+    logger.fileNormal('Process Skip', filePath)
+    return false
   }
 }

@@ -6,6 +6,7 @@ import {
   toSafeTemplateLiteral,
 } from "./utils";
 import { MarkCodeOptionType } from "./types";
+import { logger } from "./logger";
 
 export function markJsCode(
   code: string,
@@ -80,6 +81,7 @@ export function markJsCode(
             end,
             content: `${i18nTag}${escapedContent}`,
           });
+          logger.codeMatch(path.node.value);
           hasChange = true;
         }
       },
@@ -120,6 +122,7 @@ export function markJsCode(
             end,
             content: `${i18nTag}${templateContent}`,
           });
+          logger.codeMatch(templateContent);
           hasChange = true;
         }
       },
@@ -136,6 +139,7 @@ export function markJsCode(
             end,
             content: `${leading}{${i18nTag}${escapedContent}}${trailing}`,
           });
+          logger.codeMatch(content);
           hasChange = true;
         }
       },
@@ -157,6 +161,7 @@ export function markJsCode(
             end: valueNode.end,
             content: `{${i18nTag}${escapedContent}}`,
           });
+          logger.codeMatch(valueNode.value);
           hasChange = true;
         }
 
@@ -192,6 +197,7 @@ export function markJsCode(
               end,
               content: `${i18nTag}${templateContent}`,
             });
+            logger.codeMatch(templateContent);
             hasChange = true;
           }
         }
@@ -218,7 +224,6 @@ export function markJsCode(
 
     return modifiedCode;
   } catch (error) {
-    console.error(error);
-    console.debug("【code】", code);
+    logger.error("Parse error: " + String(error));
   }
 }
