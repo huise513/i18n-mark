@@ -11,7 +11,9 @@ export function extractFromJsCode(code: string, config: ExtractConfigType): I18n
 
   const entries: I18nEntryType[] = [];
   let variableCounter = 0;
-  const { i18nTag } = config;
+  const { i18nTag, placeholder } = config;
+  
+  const [placeholderStart, placeholderEnd] = placeholder
 
   traverse(ast, {
     TaggedTemplateExpression(path) {
@@ -25,7 +27,7 @@ export function extractFromJsCode(code: string, config: ExtractConfigType): I18n
             if (i < path.node.quasi.expressions.length) {
               const varName = generateVarName(variableCounter++);
               variables.push(varName);
-              return quasi.value.raw + `{${varName}}`;
+              return quasi.value.raw + `${placeholderStart}${varName}${placeholderEnd}`;
             }
             return quasi.value.raw;
           })

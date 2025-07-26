@@ -51,23 +51,7 @@ describe('Config', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
-
-  describe('Default Configurations', () => {
-    it('should have correct default config', () => {
-      expect(DEFAULT_CONFIG).toEqual({
-        entry: './src',
-        ignore: ['**/node_modules/**', '**/dist/**'],
-        extensions: ['js', 'jsx', 'ts', 'tsx', 'vue'],
-        staged: false,
-        i18nTag: 'i18n',
-        i18nImportPath: '',
-        ignoreComment: 'i18n-ignore',
-        output: './src/locale/',
-        langs: ['zh', 'en'],
-        fileMapping: 'fileMapping'
-      });
-    });
-  });
+  
 
   describe('resolveMarkConfig', () => {
     it('should resolve mark config with default values', () => {

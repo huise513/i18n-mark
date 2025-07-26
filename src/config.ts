@@ -1,10 +1,10 @@
 import { extname, isAbsolute } from "node:path";
-import { ConfigType, ExtractConfigType, MarkConfigType } from "./types";
+import { ConfigType, ExtractConfigType, MarkConfigType, ValidateConfigFieldType } from "./types";
 import { existFile, getCodeByPath, resolvePath } from "./utils";
 import { pathToFileURL } from "node:url";
 import { logger, LogMode } from "./logger";
 
-export const DEFAULT_CONFIG = {
+export const DEFAULT_CONFIG: ConfigType = {
   entry: "./src",
   ignore: ["**/node_modules/**", "**/dist/**"],
   extensions: ["js", "jsx", "ts", "tsx", "vue"],
@@ -15,21 +15,29 @@ export const DEFAULT_CONFIG = {
   ignoreComment: "i18n-ignore",
   output: "./src/locale/",
   langs: ["zh", "en"],
-  fileMapping: 'fileMapping'
+  fileMapping: 'fileMapping',
+  placeholder: ['{', '}']
 }
 
 
 // 通用配置验证函数
-function validateRequiredFields(config: any, requiredFields: string[]): void {
+function validateRequiredFields(config: any, requiredFields: ValidateConfigFieldType[]): void {
   for (const field of requiredFields) {
-    if (!config[field]) {
-      throw new Error(`Missing required config: ${field}`);
+    if (typeof field === 'string') {
+      if (!config[field]) {
+        throw new Error(`Missing required config: ${field}`);
+      }
+    } else {
+      const msg = field(config);
+      if (msg) {
+        throw new Error(`Missing required config: ${msg}`);
+      }
     }
   }
 }
 
 // 通用配置解析函数
-function resolveConfig(config: Partial<ConfigType>, requiredFields: string[]): ConfigType {
+function resolveConfig(config: Partial<ConfigType>, requiredFields: ValidateConfigFieldType[]): ConfigType {
   const mergedConfig = {
     ...DEFAULT_CONFIG,
     ...config
@@ -38,8 +46,8 @@ function resolveConfig(config: Partial<ConfigType>, requiredFields: string[]): C
   validateRequiredFields(mergedConfig, requiredFields);
 
   // 配置日志系统
-  const logMode = mergedConfig.log === 'file' ? LogMode.FILE : 
-                  mergedConfig.log === 'code' ? LogMode.CODE : LogMode.NONE;
+  const logMode = mergedConfig.log === 'file' ? LogMode.FILE :
+    mergedConfig.log === 'code' ? LogMode.CODE : LogMode.NONE;
   logger.configure(logMode);
 
   // 解析路径
@@ -56,7 +64,10 @@ export function resolveMarkConfig(config: Partial<MarkConfigType>): ConfigType {
 }
 
 export function resolveExtractConfig(config: Partial<ExtractConfigType>): ConfigType {
-  return resolveConfig(config, ['entry', 'i18nTag', 'output', 'langs', 'fileMapping']);
+  return resolveConfig(config, ['entry', 'i18nTag', 'output', 'langs', 'fileMapping', (resolveConfig) => {
+    const rs = Array.isArray(resolveConfig.placeholder) && resolveConfig.placeholder.length > 0
+    return rs ? null : 'placeholder must be array and length > 0'
+  }]);
 }
 
 /**

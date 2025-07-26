@@ -20,6 +20,7 @@ export interface ExtractConfigType extends EntryConfigType {
   output: string;
   langs: string[];
   fileMapping: string;
+  placeholder?: [string, string?];
 }
 
 export type ConfigType = MarkConfigType & ExtractConfigType;
@@ -62,3 +63,4 @@ export interface MarkCodeOptionType {
   i18nImportPath?: string;
 }
 
+export type ValidateConfigFieldType = (string | ((config: ConfigType) => string | null))
