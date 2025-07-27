@@ -4,6 +4,7 @@ import type { ViteI18nMarkPluginOptions } from './types';
 import { resolveOptions } from './utils';
 import { extname, relative } from 'node:path';
 import micromatch from 'micromatch';
+import { logger } from '../logger';
 
 /**
  * Vite i18n插件主入口
@@ -14,7 +15,7 @@ import micromatch from 'micromatch';
 export function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin {
   const resolvedOptions = resolveOptions(options);
   let currentTransformer: Transformer | null = null;
-
+  logger.configure(resolvedOptions.log);
   return {
     name: 'vite-plugin-i18n-mark',
     enforce: 'pre',
@@ -24,13 +25,13 @@ export function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin 
       }
     },
 
-    async transform(code, id) {
+    transform(code, id) {
       const filePath = id.split('?')[0]
       if (!currentTransformer || !shouldTransform(filePath, resolvedOptions)) {
         return null;
       }
       try {
-        const result = await currentTransformer.transform(code, filePath);
+        const result = currentTransformer.transform(code, filePath);
         if (!result) {
           return null;
         }

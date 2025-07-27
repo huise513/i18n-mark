@@ -53,7 +53,7 @@ export function extractCode(code: string, config: ExtractBaseType, filePath?: st
   }
   const list = fn(code, config);
   if (list.length) {
-    list.forEach((v) => (v.filePath = filePath));
+    list.forEach((v) => (v.filePath = relative(process.cwd(), filePath)));
     logger.fileProcessed(filePath);
   } else {
     logger.fileNormal('Extract Skip', filePath)
@@ -61,7 +61,10 @@ export function extractCode(code: string, config: ExtractBaseType, filePath?: st
   return list
 }
 
-export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseType) {
+export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseType, autoRemoveKey = true) {
+  if (!entries.length) {
+    return
+  }
   const { output, langs, fileMapping } = config;
   const outpath = resolvePath(output);
   if (!existFile(outpath)) {
@@ -83,7 +86,6 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
     if (existFile(filePath)) {
       const code = getCodeByPath(filePath);
       data = JSON.parse(code);
-    } else {
     }
     entries.forEach((v) => {
       if (data[v.key]) {
@@ -91,8 +93,10 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
       }
       data[v.key] = v.text;
     });
-    for (const key in diff.removedKeys) {
-      Reflect.deleteProperty(data, key);
+    if (autoRemoveKey) {
+      for (const key in diff.removedKeys) {
+        Reflect.deleteProperty(data, key);
+      }
     }
     writeFileByCode(filePath, JSON.stringify(data, null, 2));
   });

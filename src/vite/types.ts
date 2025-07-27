@@ -1,4 +1,4 @@
-import { LogMode } from '@/logger';
+import { LogMode } from '../logger';
 import type { ExtractBaseType, MarkBaseType } from '../types';
 
 export type BaseMarkType = Partial<MarkBaseType> & Partial<ExtractBaseType> 

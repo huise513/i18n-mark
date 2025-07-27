@@ -1,12 +1,92 @@
 import type {
   ResolvedOptions,
   TransformResult,
-  ViteI18nMarkPluginOptions
 } from './types';
 import { markJsCode } from '../mark-js';
 import { markVueCode } from '../mark-vue';
 import {  extractCode, writeExtractFile } from '../extract';
 import { extname } from 'node:path';
+import type { I18nEntryType } from '../types';
+
+/**
+ * 全局提取队列，用于收集所有并发的提取结果
+ */
+class ExtractQueue {
+  private queue: I18nEntryType[] = [];
+  private isProcessing = false;
+  private currentOptions: ResolvedOptions | null = null;
+
+  /**
+   * 添加条目到队列
+   * @param entries 条目列表
+   * @param options 选项
+   */
+  add(entries: I18nEntryType[], options: ResolvedOptions): void {
+    this.queue.push(...entries);
+    this.currentOptions = options;
+    this.scheduleFlush();
+  }
+
+  /**
+   * 调度刷新操作
+   */
+  private scheduleFlush(): void {
+    if (this.isProcessing) {
+      return;
+    }
+    
+    this.isProcessing = true;
+    
+    // 使用微任务来确保在当前事件循环结束后执行
+    queueMicrotask(() => {
+      this.flush();
+    });
+  }
+
+  /**
+   * 刷新队列，统一写入文件
+   */
+  private flush(): void {
+    if (this.queue.length === 0 || !this.currentOptions) {
+      this.isProcessing = false;
+      return;
+    }
+
+    try {
+      // 去重处理，避免重复的条目
+      const uniqueEntries = this.deduplicateEntries(this.queue);
+      writeExtractFile(uniqueEntries, this.currentOptions, false);
+      // 清空队列
+      this.queue = [];
+    } catch (error) {
+      console.error('[ExtractQueue] Error flushing queue:', error);
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+
+  /**
+   * 去重条目
+   * @param entries 条目列表
+   * @returns 去重后的条目列表
+   */
+  private deduplicateEntries(entries: I18nEntryType[]): I18nEntryType[] {
+    const seen = new Set<string>();
+    return entries.filter(entry => {
+      const key = `${entry.key}:${entry.filePath}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }
+
+
+}
+
+// 全局队列实例
+const extractQueue = new ExtractQueue();
 
 /**
  * 开发环境代码转换器
@@ -25,11 +105,11 @@ export class Transformer {
    * @param filePath 文件路径
    * @returns 转换结果
    */
-  async transform(code: string, filePath: string): Promise<TransformResult | null> {
+  transform(code: string, filePath: string): TransformResult | null {
     try {
-      const result = await this.performTransform(code, filePath);
+      const result = this.performTransform(code, filePath);
       if (result) {
-        await this.handleExtraction(filePath, result.code);
+        this.handleExtraction(filePath, result.code);
       }
       return result;
     } catch (error) {
@@ -44,7 +124,7 @@ export class Transformer {
    * @param filePath 文件ID
    * @returns 转换结果
    */
-  private async performTransform(code: string, filePath: string): Promise<TransformResult | null> {
+  private performTransform(code: string, filePath: string): TransformResult | null {
     try {
       const ext = extname(filePath).slice(1);
       let newCode = '';
@@ -53,7 +133,7 @@ export class Transformer {
       } else if (ext === "vue") {
         newCode = markVueCode(code, this.options);
       }
-      if (!newCode || newCode === code) {
+      if (!newCode) {
         return null;
       }
       return {
@@ -67,14 +147,17 @@ export class Transformer {
 
   /**
    * 处理国际化数据提取
+   * @param filePath 文件路径
    * @param code 代码内容
    */
-  private async handleExtraction(filePath: string, code: string): Promise<void> {
+  private handleExtraction(filePath: string, code: string): void {
     try {
       const list = extractCode(code, this.options, filePath);
-      writeExtractFile(list, this.options);
+      if (list.length > 0) {
+        extractQueue.add(list, this.options);
+      }
     } catch (error) {
-      console.error(`[Transformer] Error handling extraction :`, error);
+      console.error(`[Transformer] Error handling extraction for ${filePath}:`, error);
     }
   }
 }
