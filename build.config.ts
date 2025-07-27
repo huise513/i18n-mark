@@ -11,7 +11,7 @@ export default defineBuildConfig({
     },
     {
       input: 'src/vite/index.ts',
-      outDir: 'dist/vite',
+      name: 'vite',
     }
   ],
   declaration: true,

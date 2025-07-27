@@ -1,6 +1,6 @@
 {
 	"name": "i18n-mark",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Internationalization code mark and extract tool for JavaScript/TypeScript and Vue projects",
 	"keywords": [
 		"i18n",
@@ -25,6 +25,18 @@
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.cjs",
+			"types": "./dist/index.d.ts"
+		},
+		"./vite": {
+			"import": "./dist/vite.mjs",
+			"require": "./dist/vite.cjs",
+			"types": "./dist/vite.d.ts"
+		}
+	},
 	"bin": {
 		"i18n-mark": "./dist/cli.cjs"
 	},
