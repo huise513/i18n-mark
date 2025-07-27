@@ -1,6 +1,6 @@
 {
 	"name": "i18n-mark",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "Internationalization code mark and extract tool for JavaScript/TypeScript and Vue projects",
 	"keywords": [
 		"i18n",
@@ -50,14 +50,14 @@
 		"node": ">=16.0.0"
 	},
 	"scripts": {
-    "build": "unbuild",
-    "test": "vitest run",
-    "prepublishOnly": "pnpm run test && pnpm run build",
-    "release": "npm publish",
-    "release:patch": "bun scripts/release.ts patch",
-    "release:minor": "bun scripts/release.ts minor",
-    "release:major": "bun scripts/release.ts major"
-  },
+		"build": "unbuild",
+		"test": "vitest run",
+		"prepublishOnly": "pnpm run test && pnpm run build",
+		"release": "npm publish",
+		"release:patch": "bun scripts/release.ts patch",
+		"release:minor": "bun scripts/release.ts minor",
+		"release:major": "bun scripts/release.ts major"
+	},
 	"devDependencies": {
 		"@babel/core": "^7.27.4",
 		"@babel/parser": "^7.27.5",
