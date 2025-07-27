@@ -148,12 +148,12 @@ function main() {
   // 更新版本号
   const newVersion = updateVersion(versionType);
   
-  // 提交更改并创建标签
-  commitAndTag(newVersion);
 
   // 发布
   releaseProject();
   
+  // 提交更改并创建标签
+  commitAndTag(newVersion);
   
   // 推送到远程仓库（除非跳过）
   if (!skipPush) {
