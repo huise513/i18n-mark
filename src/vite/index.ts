@@ -26,7 +26,6 @@ export function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin 
 
     async transform(code, id) {
       const filePath = id.split('?')[0]
-      console.log('transform filePath', filePath);
       if (!currentTransformer || !shouldTransform(filePath, resolvedOptions)) {
         return null;
       }
@@ -35,7 +34,6 @@ export function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin 
         if (!result) {
           return null;
         }
-        console.log('[vite-i18n-mark-plugin]', filePath)
         return {
           code: result.code,
           map: result.map

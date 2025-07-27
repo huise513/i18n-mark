@@ -1,4 +1,4 @@
-import type { ViteI18nMarkPluginOptions } from './types';
+import type { ResolvedOptions, ViteI18nMarkPluginOptions } from './types';
 import { DEFAULT_CONFIG } from '../config';
 
 /**
@@ -16,10 +16,10 @@ const DEFAULT_PLUGIN_OPTIONS: ViteI18nMarkPluginOptions = {
  * @param options 用户提供的配置选项
  * @returns 解析后的完整配置
  */
-export function resolveOptions(options?: ViteI18nMarkPluginOptions): ViteI18nMarkPluginOptions {
+export function resolveOptions(options?: ViteI18nMarkPluginOptions): ResolvedOptions {
   const resolved = {
     ...DEFAULT_PLUGIN_OPTIONS,
     ...options,
-  } as ViteI18nMarkPluginOptions
+  } as ResolvedOptions
   return resolved;
 }

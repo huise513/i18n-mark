@@ -1,4 +1,5 @@
 import type {
+  ResolvedOptions,
   TransformResult,
   ViteI18nMarkPluginOptions
 } from './types';
@@ -12,9 +13,9 @@ import { extname } from 'node:path';
  * 在内存中转换代码，不修改源文件，同时实时提取国际化数据
  */
 export class Transformer {
-  private options: ViteI18nMarkPluginOptions;
+  private options: ResolvedOptions;
 
-  constructor(options: ViteI18nMarkPluginOptions) {
+  constructor(options: ResolvedOptions) {
     this.options = options;
   }
 
@@ -38,22 +39,6 @@ export class Transformer {
   }
 
   /**
-   * 处理文件更新（热更新）
-   * @param code 新的代码内容
-   * @param filePath 文件路径
-   */
-  async handleFileUpdate(code: string, id: string): Promise<void> {
-    try {
-      const result = await this.transform(code, id);
-      if (result) {
-        console.log(`[Transformer] Updated i18n data for ${id}`);
-      }
-    } catch (error) {
-      console.error(`[Transformer] Error handling file update for ${id}:`, error);
-    }
-  }
-
-  /**
    * 执行实际的代码转换
    * @param code 源代码
    * @param filePath 文件ID
@@ -63,7 +48,6 @@ export class Transformer {
     try {
       const ext = extname(filePath).slice(1);
       let newCode = '';
-      console.log('performTransform', filePath);
       if (["js", "jsx", "ts", "tsx"].includes(ext)) {
         newCode = markJsCode(code, this.options);
       } else if (ext === "vue") {
@@ -87,7 +71,6 @@ export class Transformer {
    */
   private async handleExtraction(filePath: string, code: string): Promise<void> {
     try {
-      console.log('handleExtraction', filePath);
       const list = extractCode(code, this.options, filePath);
       writeExtractFile(list, this.options);
     } catch (error) {

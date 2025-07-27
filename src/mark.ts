@@ -23,9 +23,19 @@ export function mark(config?: Partial<MarkConfigType>) {
 }
 
 export function markFile(filePath: string, option: MarkCodeOptionType) {
+  const code = getCodeByPath(filePath);
+  let newCode = markCode(code, option, filePath);
+  if (newCode) {
+    writeFileByCode(filePath, newCode);
+    return true
+  } else {
+    return false
+  }
+}
+
+export function markCode(code: string, option: MarkCodeOptionType, filePath: string) {
   logger.fileStart(filePath);
   const ext = extname(filePath).slice(1);
-  const code = getCodeByPath(filePath);
   let newCode = '';
   if (["js", "jsx", "ts", "tsx"].includes(ext)) {
     newCode = markJsCode(code, option);
@@ -33,11 +43,9 @@ export function markFile(filePath: string, option: MarkCodeOptionType) {
     newCode = markVueCode(code, option);
   }
   if (newCode) {
-    writeFileByCode(filePath, newCode);
     logger.fileProcessed(filePath);
-    return true
   } else {
     logger.fileNormal('Process Skip', filePath)
-    return false
   }
+  return newCode
 }

@@ -35,7 +35,6 @@ export function extractFiles(
   const entries: I18nEntryType[] = [];
   logger.info(`Found ${filePaths.length} files to extract`);
   filePaths.forEach((filePath) => {
-    logger.fileStart(filePath);
     const code = getCodeByPath(filePath);
     const list = extractCode(code, config, filePath);
     if (list.length) {
@@ -47,6 +46,7 @@ export function extractFiles(
 }
 
 export function extractCode(code: string, config: ExtractBaseType, filePath?: string) {
+  logger.fileStart(filePath);
   let fn = extractFromJsCode;
   if (filePath.endsWith(".vue")) {
     fn = extractFromVueCode;
