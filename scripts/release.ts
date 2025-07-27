@@ -89,21 +89,13 @@ function checkWorkingDirectory() {
   }
 }
 
-/**
- * 运行测试
- */
-function runTests() {
-  console.log('🧪 运行测试...');
-  runCommand('pnpm test');
-  console.log('✅ 测试通过');
-}
 
 /**
  * 构建项目
  */
-function buildProject() {
+function releaseProject() {
   console.log('🔨 构建项目...');
-  runCommand('pnpm build');
+  runCommand('pnpm release');
   console.log('✅ 构建完成');
 }
 
@@ -139,7 +131,6 @@ function main() {
   const args = process.argv.slice(2);
   const versionType = args[0] as VersionType;
   const skipPush = args.includes('--skip-push');
-  const skipTests = args.includes('--skip-tests');
   
   if (!versionType || !['patch', 'minor', 'major'].includes(versionType)) {
     console.error('❌ 请指定版本类型: patch, minor, 或 major');
@@ -154,21 +145,15 @@ function main() {
   // 检查工作目录
   checkWorkingDirectory();
   
-  // 运行测试（除非跳过）
-  if (!skipTests) {
-    runTests();
-  } else {
-    console.log('⚠️ 跳过测试');
-  }
-  
-  // 构建项目
-  buildProject();
-  
   // 更新版本号
   const newVersion = updateVersion(versionType);
   
   // 提交更改并创建标签
   commitAndTag(newVersion);
+
+  // 发布
+  releaseProject();
+  
   
   // 推送到远程仓库（除非跳过）
   if (!skipPush) {
@@ -183,9 +168,6 @@ function main() {
   console.log('🎉 发布完成!');
   console.log(`📦 新版本: v${newVersion}`);
   
-  if (!skipPush) {
-    console.log('💡 下一步可以运行: pnpm release');
-  }
 }
 
 // 运行主函数
