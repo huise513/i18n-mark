@@ -50,11 +50,14 @@
 		"node": ">=16.0.0"
 	},
 	"scripts": {
-		"build": "unbuild",
-		"test": "vitest run",
-		"prepublishOnly": "pnpm run test && pnpm run build",
-		"release": "npm publish"
-	},
+    "build": "unbuild",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm run test && pnpm run build",
+    "release": "npm publish",
+    "release:patch": "bun scripts/release.ts patch",
+    "release:minor": "bun scripts/release.ts minor",
+    "release:major": "bun scripts/release.ts major"
+  },
 	"devDependencies": {
 		"@babel/core": "^7.27.4",
 		"@babel/parser": "^7.27.5",
