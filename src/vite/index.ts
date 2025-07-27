@@ -16,13 +16,14 @@ export function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin 
   const resolvedOptions = resolveOptions(options);
   let currentTransformer: Transformer | null = null;
   logger.configure(resolvedOptions.log);
+  if (resolvedOptions?.enabled !== false) {
+    currentTransformer = new Transformer(resolvedOptions);
+  }
   return {
     name: 'vite-plugin-i18n-mark',
     enforce: 'pre',
-    configResolved() {
-      if (resolvedOptions?.enabled !== false) {
-        currentTransformer = new Transformer(resolvedOptions);
-      }
+    configResolved(config) {
+      resolvedOptions.isProduction = config.isProduction;
     },
 
     transform(code, id) {
@@ -42,6 +43,12 @@ export function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin 
       } catch (error) {
         console.error(`[vite-i18n-mark-plugin] Transform error in ${filePath}:`, error);
         return null;
+      }
+    },
+
+    buildEnd() {
+      if (resolvedOptions.isProduction) {
+        currentTransformer?.extractQueue.scheduleFlush();
       }
     }
   };

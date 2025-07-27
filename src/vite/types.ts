@@ -16,6 +16,7 @@ export interface ViteI18nMarkPluginOptions extends BaseMarkType {
 
 export type ResolvedOptions  = ViteI18nMarkPluginOptions & Required<BaseMarkType> & {
   log: LogMode;
+  isProduction: boolean;
 }
 
 

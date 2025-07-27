@@ -16,36 +16,27 @@ class ExtractQueue {
   private isProcessing = false;
   private currentOptions: ResolvedOptions | null = null;
 
-  /**
-   * 添加条目到队列
-   * @param entries 条目列表
-   * @param options 选项
-   */
-  add(entries: I18nEntryType[], options: ResolvedOptions): void {
-    this.queue.push(...entries);
+  constructor(options: ResolvedOptions) {
     this.currentOptions = options;
-    this.scheduleFlush();
   }
 
-  /**
-   * 调度刷新操作
-   */
-  private scheduleFlush(): void {
+  add(entries: I18nEntryType[]): void {
+    this.queue.push(...entries);
+    // 生产环境 统一处理
+    !this.currentOptions.isProduction && this.scheduleFlush();
+  }
+
+  
+  scheduleFlush(): void {
     if (this.isProcessing) {
       return;
     }
-    
     this.isProcessing = true;
-    
-    // 使用微任务来确保在当前事件循环结束后执行
     queueMicrotask(() => {
       this.flush();
     });
   }
 
-  /**
-   * 刷新队列，统一写入文件
-   */
   private flush(): void {
     if (this.queue.length === 0 || !this.currentOptions) {
       this.isProcessing = false;
@@ -53,9 +44,8 @@ class ExtractQueue {
     }
 
     try {
-      // 去重处理，避免重复的条目
       const uniqueEntries = this.deduplicateEntries(this.queue);
-      writeExtractFile(uniqueEntries, this.currentOptions, false);
+      writeExtractFile(uniqueEntries, this.currentOptions, this.currentOptions.isProduction);
       // 清空队列
       this.queue = [];
     } catch (error) {
@@ -85,8 +75,6 @@ class ExtractQueue {
 
 }
 
-// 全局队列实例
-const extractQueue = new ExtractQueue();
 
 /**
  * 开发环境代码转换器
@@ -94,9 +82,12 @@ const extractQueue = new ExtractQueue();
  */
 export class Transformer {
   private options: ResolvedOptions;
+  
+  extractQueue: ExtractQueue;
 
   constructor(options: ResolvedOptions) {
     this.options = options;
+    this.extractQueue = new ExtractQueue(options);
   }
 
   /**
@@ -154,7 +145,7 @@ export class Transformer {
     try {
       const list = extractCode(code, this.options, filePath);
       if (list.length > 0) {
-        extractQueue.add(list, this.options);
+        this.extractQueue.add(list);
       }
     } catch (error) {
       console.error(`[Transformer] Error handling extraction for ${filePath}:`, error);

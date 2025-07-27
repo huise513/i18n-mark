@@ -78,7 +78,9 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
   }
   const groups = groupEntriesByKey(entries);
   const diff = detectI18NDifferences(oldGroups, groups);
-
+  if (!autoRemoveKey) {
+    Object.assign(groups, oldGroups);
+  }
   writeFileByCode(groupFilePath, JSON.stringify(groups, null, 2));
   langs.forEach((lang) => {
     let filePath = `${outpath}/${lang}.json`;
@@ -87,18 +89,23 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
       const code = getCodeByPath(filePath);
       data = JSON.parse(code);
     }
+    let hasChanged = false
     entries.forEach((v) => {
       if (data[v.key]) {
         return
       }
       data[v.key] = v.text;
+      hasChanged = true;
     });
     if (autoRemoveKey) {
       for (const key in diff.removedKeys) {
         Reflect.deleteProperty(data, key);
+        hasChanged = true;
       }
     }
-    writeFileByCode(filePath, JSON.stringify(data, null, 2));
+    if (hasChanged) {
+      writeFileByCode(filePath, JSON.stringify(data, null, 2));
+    }
   });
   logger.codeNormal('Extract Add Keys', `${Object.keys(diff.addedKeys).length}`)
   logger.codeNormal('Extract Remove Keys', `${Object.keys(diff.removedKeys).length}`)
