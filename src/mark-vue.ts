@@ -28,9 +28,10 @@ export function markVueCode(code: string, option: MarkCodeOptionType) {
     }
 
     if (template?.ast) {
+        // 模板部分不需要导入语句，所以清空i18nImport配置
         const newOption = {
             ...option,
-            i18nImportPath: ''
+            i18nImport: undefined
         }
         handlerTemplateAstNodes(template.ast.children, replaceList, commentNodes, newOption);
     }

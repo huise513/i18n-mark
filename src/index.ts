@@ -7,8 +7,9 @@ export { markJsCode } from './mark-js'
 export { markVueCode } from './mark-vue'
 export { extractFromJsCode } from './extract-js'
 export { extractFromVueCode } from './extract-vue'
-export { logger, LogMode } from './logger'
-export type { MarkConfigType, ExtractConfigType } from './types'
+export { LogMode } from './logger'
+export type { MarkConfigType, ExtractConfigType, I18nImportConfig } from './types'
+export { I18nImportType } from './types'
 
 export function defineConfig(config: Partial<ConfigType>) {
   return config

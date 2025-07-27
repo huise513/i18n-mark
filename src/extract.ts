@@ -1,4 +1,5 @@
 import {
+  ExtractBaseType,
   ExtractConfigType,
   I18nDiffReportType,
   I18nEntryType,
@@ -36,22 +37,31 @@ export function extractFiles(
   filePaths.forEach((filePath) => {
     logger.fileStart(filePath);
     const code = getCodeByPath(filePath);
-    let fn = extractFromJsCode;
-    if (filePath.endsWith(".vue")) {
-      fn = extractFromVueCode;
-    }
-    const list = fn(code, config);
+    const list = extractCode(code, config, filePath);
     if (list.length) {
-      list.forEach((v) => (v.filePath = filePath));
       entries.push(...list);
-      logger.fileProcessed(filePath);
     }
   });
-  write2File(entries, config);
+  writeExtractFile(entries, config);
   logger.success(`✅ Extract completed, found ${entries.length} entries`);
 }
 
-function write2File(entries: I18nEntryType[], config: ExtractConfigType) {
+export function extractCode(code: string, config: ExtractBaseType, filePath?: string) {
+  let fn = extractFromJsCode;
+  if (filePath.endsWith(".vue")) {
+    fn = extractFromVueCode;
+  }
+  const list = fn(code, config);
+  if (list.length) {
+    list.forEach((v) => (v.filePath = filePath));
+    logger.fileProcessed(filePath);
+  } else {
+    logger.fileNormal('Extract Skip', filePath)
+  }
+  return list
+}
+
+export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseType) {
   const { output, langs, fileMapping } = config;
   const outpath = resolvePath(output);
   if (!existFile(outpath)) {
@@ -76,6 +86,9 @@ function write2File(entries: I18nEntryType[], config: ExtractConfigType) {
     } else {
     }
     entries.forEach((v) => {
+      if (data[v.key]) {
+        return
+      }
       data[v.key] = v.text;
     });
     for (const key in diff.removedKeys) {

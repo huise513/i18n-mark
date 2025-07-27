@@ -3,12 +3,12 @@ import {
   NodeTypes,
   TemplateChildNode,
 } from "@vue/compiler-core";
-import { ExtractConfigType, I18nEntryType } from "./types";
+import { ExtractCodeOptionType, I18nEntryType } from "./types";
 import { parse } from "@vue/compiler-sfc";
 import { extractFromJsCode } from "./extract-js";
 import { logger } from "./logger";
 
-export function extractFromVueCode(code: string, config: ExtractConfigType): I18nEntryType[] {
+export function extractFromVueCode(code: string, config: ExtractCodeOptionType): I18nEntryType[] {
   const entries: I18nEntryType[] = [];
   const result = parse(code);
   let { template, script, scriptSetup } = result.descriptor;
@@ -28,7 +28,7 @@ export function extractFromVueCode(code: string, config: ExtractConfigType): I18
 function handlerTemplateAstNodes(
   astNodes: TemplateChildNode[],
   entries: I18nEntryType[],
-  config: ExtractConfigType
+  config: ExtractCodeOptionType
 ) {
   for (let i = 0; i < astNodes.length; i++) {
     const node = astNodes[i];
@@ -36,7 +36,7 @@ function handlerTemplateAstNodes(
   }
 }
 
-function handlerTemplateAst(astNode: TemplateChildNode, entries: I18nEntryType[], config: ExtractConfigType) {
+function handlerTemplateAst(astNode: TemplateChildNode, entries: I18nEntryType[], config: ExtractCodeOptionType) {
   switch (astNode.type) {
     case NodeTypes.ELEMENT:
       const { props, children } = astNode;
@@ -54,7 +54,7 @@ function handlerTemplateAst(astNode: TemplateChildNode, entries: I18nEntryType[]
   }
 }
 
-function handleElementProps(props: ElementNode["props"], entries: I18nEntryType[], config: ExtractConfigType) {
+function handleElementProps(props: ElementNode["props"], entries: I18nEntryType[], config: ExtractCodeOptionType) {
   for (let i = 0; i < props.length; i++) {
     const prop = props[i];
     switch (prop.type) {

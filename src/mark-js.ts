@@ -5,8 +5,97 @@ import {
   splitString,
   toSafeTemplateLiteral,
 } from "./utils";
-import { MarkCodeOptionType } from "./types";
+import { MarkCodeOptionType, I18nImportConfig, I18nImportType } from "./types";
 import { logger } from "./logger";
+
+/**
+ * 规范化i18n导入配置
+ * @param option 标记代码选项
+ * @returns 规范化后的导入配置
+ */
+function normalizeI18nImportConfig(option: MarkCodeOptionType): I18nImportConfig | null {
+  // 优先使用i18nImport配置
+  if (option.i18nImport) {
+    if (typeof option.i18nImport === 'string') {
+      // 字符串模式，使用默认导入
+      return {
+        path: option.i18nImport,
+        type: I18nImportType.DEFAULT,
+        name: option.i18nTag
+      };
+    } else {
+      // 对象模式，直接返回
+      return option.i18nImport;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 生成i18n导入语句
+ * @param config i18n导入配置
+ * @returns 导入语句字符串
+ */
+function generateI18nImport(config: I18nImportConfig, i18nTag: string): string {
+  const { path, type, name } = config;
+
+  switch (type) {
+    case I18nImportType.DEFAULT:
+      return `import ${name || i18nTag} from '${path}';`;
+
+    case I18nImportType.NAMED:
+      const importName = name || i18nTag;
+      return `import { ${importName} } from '${path}';`;
+
+    case I18nImportType.NAMESPACE:
+      return `import * as ${name || i18nTag} from '${path}';`;
+
+    default:
+      return `import ${name || i18nTag} from '${path}';`;
+  }
+}
+
+/**
+ * 检查是否已存在相关导入
+ * @param ast AST对象
+ * @param config 导入配置
+ * @returns 是否已存在导入
+ */
+function hasExistingImport(ast: any, config: I18nImportConfig): boolean {
+  let hasImport = false;
+
+  traverse(ast, {
+    ImportDeclaration(path) {
+      if (path.node.source.value === config.path) {
+        const specifiers = path.node.specifiers;
+
+        switch (config.type) {
+          case I18nImportType.NAMED:
+            // 检查是否包含所需的具名导入
+            const importName = config.name;
+            hasImport = importName ? specifiers.some(spec =>
+              spec.type === 'ImportSpecifier' &&
+              (spec.imported as any).name === importName
+            ) : false;
+            break;
+
+          case I18nImportType.DEFAULT:
+            // 检查是否有默认导入
+            hasImport = specifiers.some(spec => spec.type === 'ImportDefaultSpecifier');
+            break;
+
+          case I18nImportType.NAMESPACE:
+            // 检查是否有命名空间导入
+            hasImport = specifiers.some(spec => spec.type === 'ImportNamespaceSpecifier');
+            break;
+        }
+      }
+    }
+  });
+
+  return hasImport;
+}
 
 export function markJsCode(
   code: string,
@@ -27,7 +116,10 @@ export function markJsCode(
       content: string;
     }[] = [];
     let hasChange = false;
-    let i18nImportAdded = false;
+
+    // 获取规范化的导入配置
+    const importConfig = normalizeI18nImportConfig(option);
+    let i18nImportAdded = importConfig ? hasExistingImport(ast, importConfig) : true;
 
     const comments = ast.comments || [];
     const hasIgnoreComment = (node: { start?: number | null; loc?: any }) => {
@@ -49,11 +141,6 @@ export function markJsCode(
     };
     // 遍历 AST 收集需要替换的位置
     traverse(ast, {
-      ImportDeclaration(path) {
-        if (path.node.source.value === option.i18nImportPath) {
-          i18nImportAdded = true;
-        }
-      },
 
       StringLiteral(path) {
         if (hasIgnoreComment(path.node)) return;
@@ -132,8 +219,8 @@ export function markJsCode(
         const trimmedValue = path.node.value;
         if (hasChinese(trimmedValue)) {
           const { start, end } = path.node;
-          const { leading, content, trailing } = splitString(trimmedValue);   
-          const escapedContent = toSafeTemplateLiteral(content);  
+          const { leading, content, trailing } = splitString(trimmedValue);
+          const escapedContent = toSafeTemplateLiteral(content);
           replacements.push({
             start,
             end,
@@ -146,6 +233,13 @@ export function markJsCode(
 
       JSXAttribute(path) {
         if (hasIgnoreComment(path.node)) return;
+
+        // 检查属性名是否在忽略列表中
+        const attrName = path.node.name?.name;
+        if (option.ignoreAttrs && attrName && typeof attrName === 'string' && option.ignoreAttrs.includes(attrName)) {
+          return;
+        }
+
         // 处理字符串字面量属性
         if (
           path.node.value &&
@@ -218,8 +312,10 @@ export function markJsCode(
         modifiedCode.slice(replacement.end);
     }
 
-    if (option.i18nImportPath && !i18nImportAdded) {
-      modifiedCode = `import ${i18nTag} from '${option.i18nImportPath}';\n${modifiedCode}`;
+    // 添加导入语句（如果需要且尚未存在）
+    if (importConfig && !i18nImportAdded) {
+      const importStatement = generateI18nImport(importConfig, option.i18nTag);
+      modifiedCode = `${importStatement}\n${modifiedCode}`;
     }
 
     return modifiedCode;

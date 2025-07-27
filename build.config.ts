@@ -8,6 +8,10 @@ export default defineBuildConfig({
     {
       input: 'src/cli',
       name: 'cli',
+    },
+    {
+      input: 'src/vite/index.ts',
+      outDir: 'dist/vite',
     }
   ],
   declaration: true,
@@ -16,5 +20,5 @@ export default defineBuildConfig({
     emitCJS: true,
     inlineDependencies: true
   },
-  externals: []
+  externals: ['vite']
 })

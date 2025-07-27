@@ -11,7 +11,7 @@ export const DEFAULT_CONFIG: ConfigType = {
   staged: false,
   log: LogMode.NONE,
   i18nTag: "i18n",
-  i18nImportPath: "",
+  i18nImport: "",
   ignoreComment: "i18n-ignore",
   output: "./src/locale/",
   langs: ["zh", "en"],

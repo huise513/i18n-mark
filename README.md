@@ -65,7 +65,11 @@ import { mark, extract } from 'i18n-mark'
 mark({
   entry: './src',
   extensions: ['js', 'ts', 'vue'],
-  i18nTag: 'i18n'
+  i18nTag: 'i18n',
+  i18nImport: {
+    path: '@/utils/i18n',
+    type: 'default'
+  }
 })
 
 // 提取国际化字符串
@@ -85,7 +89,10 @@ export default {
   entry: './src',
   extensions: ['js', 'ts', 'vue'],
   i18nTag: 't',
-  i18nImportPath: '@/utils/i18n',
+  i18nImport: {
+    path: '@/utils/i18n',
+    type: 'default'
+  },
   ignore: ['**/test/**', '**/node_modules/**'],
 }
 ```
@@ -104,11 +111,53 @@ i18n-mark -c i18n.config.js
 | `entry` | `string` | `'./src'` | 入口目录路径 |
 | `ignore` | `string[]` | `['**/node_modules/**', '**/dist/**']` | 忽略的目录和文件模式 |
 | `extensions` | `string[]` | `['js', 'jsx', 'ts', 'tsx', 'vue']` | 处理的文件扩展名 |
-| `i18nImportPath` | `string` | `undefined` | i18n 函数的导入路径，为空时不导入 |
+| `i18nImport` | `string \| I18nImportConfig` | `undefined` | i18n 函数的导入配置，支持字符串路径或详细配置对象 |
 | `i18nTag` | `string` | `'i18n'` | i18n 标记函数名 |
-| `ignoreAttrs` | `string[]` | `[]` | Vue template 中忽略的属性 |
+| `ignoreAttrs` | `string[]` | `[]` | Vue template 和 JSX 中忽略的属性 |
 | `ignoreComment` | `string` | `'i18n-ignore'` | 忽略注释标记 |
 | `staged` | `boolean` | `false` | 只处理 Git 暂存区文件 |
+
+#### I18nImportConfig 配置详情
+
+当 `i18nImport` 为对象时，支持以下配置：
+
+| 选项 | 类型 | 默认值 | 说明 |
+|------|------|--------|---------|
+| `path` | `string` | 必填 | 导入路径 |
+| `type` | `'default' \| 'named' \| 'namespace'` | `'default'` | 导入类型 |
+| `name` | `string` | `undefined` | 导入的变量名或函数名，默认使用 i18nTag 配置 |
+
+**导入类型示例：**
+
+```javascript
+// 字符串形式（简化配置）
+i18nImport: '@/utils/i18n'
+// 等同于：{ path: '@/utils/i18n', type: 'default' }
+
+// 默认导入
+i18nImport: {
+  path: '@/utils/i18n',
+  type: 'default',
+  name: 't'  // 可选，默认为 是 i18nTag 配置
+}
+// 生成：import t from '@/utils/i18n'
+
+// 具名导入
+i18nImport: {
+  path: 'vue-i18n',
+  type: 'named',
+  name: 'useI18n'  // 要导入的函数名
+}
+// 生成：import { useI18n } from 'vue-i18n'
+
+// 命名空间导入
+i18nImport: {
+  path: '@/utils/i18n',
+  type: 'namespace',
+  name: 'I18n'  
+}
+// 生成：import * as I18n from '@/utils/i18n'
+```
 
 ### Extract 配置 (ExtractConfigType)
 
@@ -184,3 +233,27 @@ function generateVarName(index) {
   return String.fromCharCode(charCode).repeat(repeat);
 }
 ```
+
+### Vite 插件使用
+
+在 Vite 项目中，可以使用 Vite 插件进行开发时的实时转换， 不直接修改源代码
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite'
+import { vitePluginI18nMark } from 'i18n-mark/vite'
+
+export default defineConfig({
+  plugins: [
+    vitePluginI18nMark({
+      i18nTag: 'i18n',
+      i18nImport: {
+        path: '@/utils/i18n',
+        type: 'default'
+      }
+    })
+  ]
+})
+```
+
+> 📖 **详细文档**：[Vite 插件使用指南](./docs/README.md)

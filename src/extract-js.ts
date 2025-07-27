@@ -1,9 +1,9 @@
 import { parse } from "@babel/parser";
 import traverse from "@babel/traverse";
-import { ExtractConfigType, I18nEntryType } from "./types";
+import { ExtractCodeOptionType, I18nEntryType } from "./types";
 import { generateVarName } from "./utils";
 
-export function extractFromJsCode(code: string, config: ExtractConfigType): I18nEntryType[] {
+export function extractFromJsCode(code: string, config: ExtractCodeOptionType): I18nEntryType[] {
   const ast = parse(code, {
     sourceType: "unambiguous",
     plugins: ["jsx", "typescript"],
