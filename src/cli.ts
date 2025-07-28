@@ -9,8 +9,12 @@ const version = packageJson.version;
 
 async function mergeConfig(options: CliExtractConfigType | CliMarkConfigType) {
   const config = await loadConfigFile(options.config);
-  if (options.entry) {
-    config.entry = options.entry;
+  
+  if (options.include) {
+    config.include = options.include;
+  }
+  if (options.exclude) {
+    config.exclude = options.exclude;
   }
   if ('output' in options && options.output) {
     config.output = options.output;
@@ -48,24 +52,28 @@ program
   .version(version);
 
 program
-  .option("-c, --config <path>", "Config file path ")
-  .option("-e, --entry <path>", "Entry directory path ")
+  .option("-c, --config <path>", "Config file path")
+  .option("-i, --include <patterns...>", "Include file patterns")
+  .option("-x, --exclude <patterns...>", "Exclude file patterns")
   .option("-o, --output <path>", "Output JSON file path")
-  .option("-s, --staged", "Enable only git staged files ")
+  .option("-s, --staged", "Enable only git staged files")
   .action(handleAll);
 
 program
   .command("mark")
-  .option("-c, --config <path>", "Config file path ")
-  .option("-e, --entry <path>", "Entry directory path ")
-  .option("-s, --staged", "Enable only git staged files ")
+  .description("Mark Chinese strings with i18n tags")
+  .option("-c, --config <path>", "Config file path")
+  .option("-i, --include <patterns...>", "Include file patterns")
+  .option("-x, --exclude <patterns...>", "Exclude file patterns")
+  .option("-s, --staged", "Enable only git staged files")
   .action(handleMark);
 
 program
   .command("extract")
   .description("Extract i18n strings to JSON")
-  .option("-c, --config <path>", "Config file path (JSON)")
-  .option("-e, --entry <path>", "Entry directory path")
+  .option("-c, --config <path>", "Config file path")
+  .option("-i, --include <patterns...>", "Include file patterns")
+  .option("-x, --exclude <patterns...>", "Exclude file patterns")
   .option("-o, --output <path>", "Output JSON file path")
   .option("-s, --staged", "Enable only git staged files")
   .action(handleExtract);

@@ -12,7 +12,7 @@ import { logger } from '../logger';
  * @param options 插件配置选项
  * @returns Vite插件对象
  */
-export function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin {
+function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin {
   const resolvedOptions = resolveOptions(options);
   let currentTransformer: Transformer | null = null;
   logger.configure(resolvedOptions.log);
@@ -64,13 +64,7 @@ function shouldTransform(filePath: string, options: ViteI18nMarkPluginOptions): 
   if (filePath.includes('node_modules')) {
     return false;
   }
-  const ext = extname(filePath).slice(1);
   const resolvePath = relative(process.cwd(), filePath)
-  const hasValidExtension = options.extensions.some(v => v === ext);
-  if (!hasValidExtension) {
-    return false;
-  }
-
   if (options.include && options.include.length > 0) {
     const isIncluded = micromatch.isMatch(resolvePath, options.include);
     if (!isIncluded) {

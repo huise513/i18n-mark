@@ -134,21 +134,43 @@ describe('Utils', () => {
   /**
    * 测试入口文件查找功能
    */
-  it('should find entry files', () => {
-    const expectedFiles = ['/path/to/file1.ts'];
-    
+  it('should find files using include/exclude patterns', () => {
+    const expectedFiles = ['src/file1.ts', 'src/file2.ts'];
     mockGlobSync.mockReturnValue(expectedFiles);
     
     const config = {
-      entry: './src',
-      extensions: ['ts'],
+      include: ['src/**/*.ts'],
+      exclude: ['**/test/**'],
       staged: false
     };
     
     const result = findEntryFilesPath(config);
     
     expect(result).toEqual(expectedFiles);
-    expect(mockGlobSync).toHaveBeenCalled();
+    expect(mockGlobSync).toHaveBeenCalledWith('src/**/*.ts', {
+      absolute: true,
+      ignore: ['**/test/**'],
+      nodir: true
+    });
+  });
+
+  it('should handle staged files with include/exclude patterns', () => {
+    mockExecSync.mockReturnValue('src/file1.ts\nsrc/file2.js\ntest/file3.ts\n');
+    mockPath.resolve.mockImplementation((cwd, path) => `/resolved/${path}`);
+    mockPath.relative.mockImplementation((from, to) => to.replace('/resolved/', ''));
+    mockPath.join.mockImplementation((...args) => args.join('/'));
+    mockMicromatch.mockReturnValue(['src/file1.ts']);
+    
+    const config = {
+      include: ['src/**/*.ts'],
+      exclude: ['**/test/**'],
+      staged: true
+    };
+    
+    const result = findEntryFilesPath(config);
+    
+    expect(Array.isArray(result)).toBe(true);
+    expect(mockExecSync).toHaveBeenCalled();
   });
 
   /**

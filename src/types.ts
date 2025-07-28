@@ -1,28 +1,46 @@
 import { LogMode } from "./logger";
 
-export interface EntryConfigType {
-  entry: string;
-  ignore?: string[];
-  extensions: string[];
-  staged: boolean;
-  log?: LogMode;
+/**
+ * 文件匹配配置接口
+ * 使用现代的 include/exclude 模式进行文件匹配
+ */
+export interface FileMatchConfigType {
+  include?: string[];                  // 包含的文件模式（glob 模式）
+  exclude?: string[];                 // 排除的文件模式（glob 模式）
+  staged?: boolean;                    // 是否只处理 Git 暂存区文件
+  log?: LogMode;                      // 日志模式
 }
+/**
+ * 标记功能基础配置
+ */
 export interface MarkBaseType {
-  i18nTag: string;
-  i18nImport?: string | I18nImportConfig;
-  ignoreAttrs?: string[];
-  ignoreComment: string;
+  i18nTag: string;                    // i18n 标记函数名
+  i18nImport?: string | I18nImportConfig; // i18n 导入配置
+  ignoreAttrs?: string[];             // 忽略的属性名
+  ignoreComment: string;              // 忽略注释标记
 }
-export interface MarkConfigType extends EntryConfigType, MarkBaseType {
+
+/**
+ * 标记功能完整配置
+ */
+export interface MarkConfigType extends FileMatchConfigType, MarkBaseType {
 }
+
+/**
+ * 提取功能基础配置
+ */
 export interface ExtractBaseType {
-  i18nTag: string;
-  output: string;
-  langs: string[];
-  fileMapping: string;
-  placeholder?: [string, string?];
+  i18nTag: string;                    // i18n 标记函数名
+  output: string;                     // 输出目录
+  langs: string[];                    // 支持的语言列表
+  fileMapping: string;                // 文件映射配置
+  placeholder?: [string, string?];    // 占位符配置
 }
-export interface ExtractConfigType extends EntryConfigType, ExtractBaseType {
+
+/**
+ * 提取功能完整配置
+ */
+export interface ExtractConfigType extends FileMatchConfigType, ExtractBaseType {
 }
 
 export type ConfigType = MarkConfigType & ExtractConfigType;
@@ -35,17 +53,25 @@ export interface I18nEntryType {
   filePath?: string;
 }
 
+/**
+ * CLI 标记命令配置
+ */
 export interface CliMarkConfigType {
-  entry?: string;
-  config?: string;
-  staged?: boolean;
+  include?: string[];                 // 包含的文件模式
+  exclude?: string[];                 // 排除的文件模式
+  config?: string;                    // 配置文件路径
+  staged?: boolean;                   // 是否只处理暂存区文件
 }
 
+/**
+ * CLI 提取命令配置
+ */
 export interface CliExtractConfigType {
-  entry?: string;
-  config?: string;
-  output?: string;
-  staged?: boolean;
+  include?: string[];                 // 包含的文件模式
+  exclude?: string[];                 // 排除的文件模式
+  config?: string;                    // 配置文件路径
+  output?: string;                    // 输出目录
+  staged?: boolean;                   // 是否只处理暂存区文件
 }
 
 export interface KeyUsageMapType {

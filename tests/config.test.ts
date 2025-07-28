@@ -54,59 +54,55 @@ describe('Config', () => {
   
 
   describe('resolveMarkConfig', () => {
-    it('should resolve mark config with default values', () => {
+    it('should resolve mark config with include/exclude patterns', () => {
       const config = resolveMarkConfig({
-        entry: './src',
+        include: ['src/**/*.{js,ts,vue}'],
+        exclude: ['**/test/**'],
         i18nTag: 'i18n'
       });
       
-      expect(config.entry).toBeDefined();
-      expect(config.entry).toMatch(/src/);
+      expect(config.include).toEqual(['src/**/*.{js,ts,vue}']);
+      expect(config.exclude).toEqual(['**/test/**']);
       expect(config.i18nTag).toBe('i18n');
       expect(config.ignoreComment).toBe('i18n-ignore');
-      expect(config.ignore).toEqual(['**/node_modules/**', '**/dist/**']);
-      expect(config.extensions).toEqual(['js', 'jsx', 'ts', 'tsx', 'vue']);
     });
 
     it('should merge custom config with defaults', () => {
       const customConfig = {
-        entry: './app',
+        include: ['components/**/*.{js,ts}'],
+        exclude: ['**/node_modules/**'],
         i18nTag: 'translate',
-        i18nImportPath: '@/i18n'
+        i18nImport: '@/i18n'
       };
       
       const config = resolveMarkConfig(customConfig);
       
-      expect(config.entry).toBeDefined();
-      expect(config.entry).toMatch(/app/);
+      expect(config.include).toEqual(['components/**/*.{js,ts}']);
+      expect(config.exclude).toEqual(['**/node_modules/**']);
       expect(config.i18nTag).toBe('translate');
-      expect(config.i18nImportPath).toBe('@/i18n');
+      expect(config.i18nImport).toBe('@/i18n');
       expect(config.ignoreComment).toBe('i18n-ignore'); // default value
     });
 
     it('should throw error for missing required config', () => {
       expect(() => {
-        resolveMarkConfig({ entry: '', i18nTag: 'i18n' });
-      }).toThrow('Missing required config: entry');
-      
-      expect(() => {
-        resolveMarkConfig({ entry: './src', i18nTag: '' });
+        resolveMarkConfig({ include: [], i18nTag: '' });
       }).toThrow('Missing required config: i18nTag');
     });
   });
 
   describe('resolveExtractConfig', () => {
-    it('should resolve extract config with default values', () => {
+    it('should resolve extract config with include/exclude patterns', () => {
       const config = resolveExtractConfig({
-        entry: './src',
+        include: ['src/**/*.{js,ts,vue}'],
+        exclude: ['**/test/**'],
         output: './locales',
         langs: ['zh', 'en'],
         fileMapping: 'mapping'
       });
       
-      expect(config.entry).toBeDefined();
-      expect(config.entry).toMatch(/src/);
-      expect(config.i18nTag).toBe('i18n');
+      expect(config.include).toEqual(['src/**/*.{js,ts,vue}']);
+      expect(config.exclude).toEqual(['**/test/**']);
       expect(config.output).toBeDefined();
       expect(config.output).toMatch(/locales/);
       expect(config.langs).toEqual(['zh', 'en']);
@@ -114,7 +110,8 @@ describe('Config', () => {
 
     it('should merge custom config with defaults', () => {
       const customConfig = {
-        entry: './components',
+        include: ['components/**/*.{js,ts}'],
+        exclude: ['**/node_modules/**'],
         i18nTag: 'translate',
         output: './i18n',
         langs: ['zh', 'en', 'fr'],
@@ -123,8 +120,8 @@ describe('Config', () => {
       
       const config = resolveExtractConfig(customConfig);
       
-      expect(config.entry).toBeDefined();
-      expect(config.entry).toMatch(/components/);
+      expect(config.include).toEqual(['components/**/*.{js,ts}']);
+      expect(config.exclude).toEqual(['**/node_modules/**']);
       expect(config.i18nTag).toBe('translate');
       expect(config.output).toBeDefined();
       expect(config.output).toMatch(/i18n/);
@@ -134,23 +131,19 @@ describe('Config', () => {
 
     it('should throw error for missing required config', () => {
       expect(() => {
-        resolveExtractConfig({ entry: '', i18nTag: 'i18n', output: './locales', langs: ['zh'], fileMapping: 'mapping' });
-      }).toThrow('Missing required config: entry');
-      
-      expect(() => {
-        resolveExtractConfig({ entry: './src', i18nTag: '', output: './locales', langs: ['zh'], fileMapping: 'mapping' });
+        resolveExtractConfig({ include: [], i18nTag: '', output: './locales', langs: ['zh'], fileMapping: 'mapping' });
       }).toThrow('Missing required config: i18nTag');
       
       expect(() => {
-        resolveExtractConfig({ entry: './src', i18nTag: 'i18n', output: '', langs: ['zh'], fileMapping: 'mapping' });
+        resolveExtractConfig({ include: ['src/**/*.js'], i18nTag: 'i18n', output: '', langs: ['zh'], fileMapping: 'mapping' });
       }).toThrow('Missing required config: output');
       
       expect(() => {
-         resolveExtractConfig({ entry: './src', i18nTag: 'i18n', output: './locales', langs: undefined, fileMapping: 'mapping' });
+         resolveExtractConfig({ include: ['src/**/*.js'], i18nTag: 'i18n', output: './locales', langs: undefined, fileMapping: 'mapping' });
        }).toThrow('Missing required config: langs');
        
        expect(() => {
-         resolveExtractConfig({ entry: './src', i18nTag: 'i18n', output: './locales', langs: ['zh'], fileMapping: undefined });
+         resolveExtractConfig({ include: ['src/**/*.js'], i18nTag: 'i18n', output: './locales', langs: ['zh'], fileMapping: undefined });
        }).toThrow('Missing required config: fileMapping');
     });
   });
@@ -212,7 +205,8 @@ describe('Config', () => {
       const config = await loadConfigFile();
       
       // When no config file is found, it returns the default config
-      expect(config).toHaveProperty('entry');
+      expect(config).toHaveProperty('include');
+      expect(config).toHaveProperty('exclude');
       expect(config).toHaveProperty('i18nTag');
       expect(mockExistFile).toHaveBeenCalled();
     });
@@ -224,10 +218,9 @@ describe('Config', () => {
       const config = await loadConfigFile();
       
       // When no config file is found, it returns the default config
-      expect(config).toHaveProperty('entry');
+      expect(config).toHaveProperty('include');
+      expect(config).toHaveProperty('exclude');
       expect(config).toHaveProperty('i18nTag');
-      expect(config).toHaveProperty('ignore');
-      expect(config).toHaveProperty('extensions');
       expect(config).toHaveProperty('output');
       expect(config).toHaveProperty('langs');
       expect(config).toHaveProperty('fileMapping');

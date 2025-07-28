@@ -28,7 +28,7 @@ yarn add i18n-mark
 
 ```javascript
 import { defineConfig } from 'vite'
-import { vitePluginI18nMark } from 'i18n-mark/vite'
+import vitePluginI18nMark from 'i18n-mark/vite'
 
 export default defineConfig({
   plugins: [
@@ -53,8 +53,6 @@ export default defineConfig({
 | 选项 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `enabled` | `boolean` | `true` | 是否启用插件 |
-| `include` | `string[]` | `['src/**/*.{vue,js,ts,jsx,tsx}']` | 包含的文件模式 |
-| `exclude` | `string[]` | `['node_modules/**', 'dist/**']` | 排除的文件模式 |
 
 ### 继承 i18n-mark 选项
 

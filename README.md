@@ -18,7 +18,6 @@ const message = i18n`你好世界`;
 // 从代码中提取
 i18n`你好世界` -> { "你好世界": "你好世界" }
 ```
-
 ## ✨ 特性
 
 - 🎯 **智能识别**：自动识别代码中的中文字符串，无需手动标记
@@ -31,11 +30,10 @@ i18n`你好世界` -> { "你好世界": "你好世界" }
 ## 📦 安装
 
 ```bash
-# 使用 npm
-npm i i18n-mark
+npm install i18n-mark
 
 # 全局安装（CLI使用）
-npm i i18n-mark -g
+npm install i18n-mark -g
 ```
 
 ## 🚀 快速开始
@@ -46,14 +44,20 @@ npm i i18n-mark -g
 # 标记中文字符串
 i18n-mark mark
 
-# 提取国际化字符串到JSON
+# 提取国际化字符串
 i18n-mark extract
 
-# 标记并提取
+# 标记并提取（一步完成）
 i18n-mark
 
-# 查看帮助
-i18n-mark -h
+# 使用配置文件
+i18n-mark -c i18n.config.js
+
+# 处理特定文件
+i18n-mark mark -i "src/**/*.{js,ts,vue}" -x "**/test/**"
+
+# 只处理 Git 暂存区文件
+i18n-mark -s
 ```
 
 ### 编程式使用
@@ -63,19 +67,15 @@ import { mark, extract } from 'i18n-mark'
 
 // 标记中文字符串
 mark({
-  entry: './src',
-  extensions: ['js', 'ts', 'vue'],
+  include: ['src/**/*.{js,ts,vue}'],
   i18nTag: 'i18n',
-  i18nImport: {
-    path: '@/utils/i18n',
-    type: 'default'
-  }
+  i18nImport: '@/utils/i18n'
 })
 
 // 提取国际化字符串
 extract({
-  entry: './src',
-  output: './src/locale',
+  include: ['src/**/*.{js,ts,vue}'],
+  output: './src/locale/',
   langs: ['zh', 'en']
 })
 ```
@@ -86,157 +86,88 @@ extract({
 
 ```javascript
 export default {
-  entry: './src',
-  extensions: ['js', 'ts', 'vue'],
-  i18nTag: 't',
-  i18nImport: {
-    path: '@/utils/i18n',
-    type: 'default'
-  },
-  ignore: ['**/test/**', '**/node_modules/**'],
+  include: ['src/**/*.{js,ts,vue}'],
+  exclude: ['**/test/**'],
+  i18nTag: 'i18n',
+  i18nImport: '@/utils/i18n',
+  output: './src/locale/',
+  langs: ['zh', 'en']
 }
 ```
 
-然后使用配置文件：
-
-```bash
-i18n-mark -c i18n.config.js
-```
-## ⚙️ 配置选项
-
-### Mark 配置 (MarkConfigType)
+## ⚙️ 配置 API
 
 | 选项 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `entry` | `string` | `'./src'` | 入口目录路径 |
-| `ignore` | `string[]` | `['**/node_modules/**', '**/dist/**']` | 忽略的目录和文件模式 |
-| `extensions` | `string[]` | `['js', 'jsx', 'ts', 'tsx', 'vue']` | 处理的文件扩展名 |
-| `i18nImport` | `string \| I18nImportConfig` | `undefined` | i18n 函数的导入配置，支持字符串路径或详细配置对象 |
-| `i18nTag` | `string` | `'i18n'` | i18n 标记函数名 |
-| `ignoreAttrs` | `string[]` | `[]` | Vue template 和 JSX 中忽略的属性 |
-| `ignoreComment` | `string` | `'i18n-ignore'` | 忽略注释标记 |
+| `include` | `string[]` | `['src/**/*.{js,jsx,ts,tsx,vue}']` | 包含的文件模式（glob） |
+| `exclude` | `string[]` | `['**/node_modules/**', '**/dist/**']` | 排除的文件模式（glob） |
 | `staged` | `boolean` | `false` | 只处理 Git 暂存区文件 |
+| `i18nTag` | `string` | `'i18n'` | i18n 标记函数名 |
+| `i18nImport` | `string \| object` | `undefined` | i18n 函数导入配置 |
+| `ignoreComment` | `string` | `'i18n-ignore'` | 忽略注释标记 |
+| `ignoreAttrs` | `string[]` | `[]` | Vue/JSX 中忽略的属性 |
+| `output` | `string` | `'./src/locale/'` | 输出目录 |
+| `langs` | `string[]` | `['zh', 'en']` | 支持的语言列表 |
+| `fileMapping` | `string` | `'fileMapping'` | 文件映射配置 |
+| `placeholder` | `[string, string?]` | `['{', '}']` | 占位符配置 |
 
-#### I18nImportConfig 配置详情
+### i18nImport 配置
 
-当 `i18nImport` 为对象时，支持以下配置：
-
-| 选项 | 类型 | 默认值 | 说明 |
-|------|------|--------|---------|
-| `path` | `string` | 必填 | 导入路径 |
-| `type` | `'default' \| 'named' \| 'namespace'` | `'default'` | 导入类型 |
-| `name` | `string` | `undefined` | 导入的变量名或函数名，默认使用 i18nTag 配置 |
-
-**导入类型示例：**
+支持字符串或对象配置：
 
 ```javascript
-// 字符串形式（简化配置）
+// 字符串形式（推荐）
 i18nImport: '@/utils/i18n'
-// 等同于：{ path: '@/utils/i18n', type: 'default' }
 
-// 默认导入
+// 对象形式（高级配置）
 i18nImport: {
-  path: '@/utils/i18n',
-  type: 'default',
-  name: 't'  // 可选，默认为 是 i18nTag 配置
+  path: '@/utils/i18n',    // 导入路径
+  type: 'default',        // 导入类型：'default' | 'named' | 'namespace'
+  name: 'i18n'            // 导入名称，默认使用 i18nTag
 }
-// 生成：import t from '@/utils/i18n'
-
-// 具名导入
-i18nImport: {
-  path: 'vue-i18n',
-  type: 'named',
-  name: 'useI18n'  // 要导入的函数名
-}
-// 生成：import { useI18n } from 'vue-i18n'
-
-// 命名空间导入
-i18nImport: {
-  path: '@/utils/i18n',
-  type: 'namespace',
-  name: 'I18n'  
-}
-// 生成：import * as I18n from '@/utils/i18n'
 ```
 
-### Extract 配置 (ExtractConfigType)
 
-| 选项 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `entry` | `string` | `'./src'` | 入口目录路径 |
-| `ignore` | `string[]` | `['**/node_modules/**', '**/dist/**']` | 忽略的目录和文件模式 |
-| `extensions` | `string[]` | `['js', 'jsx', 'ts', 'tsx', 'vue']` | 处理的文件扩展名 |
-| `i18nTag` | `string` | `'i18n'` | i18n 标记函数名 |
-| `output` | `string` | `'./src/locale'` | 输出目录路径 |
-| `langs` | `string[]` | `['zh', 'en']` | 输出的语言列表 |
-| `staged` | `boolean` | `false` | 只处理 Git 暂存区文件 |
-| `fileMapping` | `string` | `'fileMapping'` | 文件映射文件名, 用于记录国际化字符串和文件路径的映射关系 |
-| `placeholder` | [string, string?] | `['{', '}']` | 占位符格式配置, 默认为`{}` |
 
 ## 🔧 i18n 标签函数
 
-### 变量占位符机制
+### 变量占位符
 
-当 `extract` 提取函数遇到包含变量的模板字符串时，变量会被自动替换为占位符：
-
-**占位符命名规则**：`a`, `b`, `c` ... `z`, `aa`, `bb` ...
-
-### 创建兼容的 i18n 函数
-
-为了支持这种占位符机制，你的 i18n 函数需要能够处理模板字符串中的变量替换。
-
-#### Vue-i18n 集成示例
+模板字符串中的变量会被自动替换为占位符（`a`, `b`, `c` ...）：
 
 ```javascript
-import { createI18nTag } from 'i18n-mark'
-import { createI18n } from 'vue-i18n'
+// 原始代码
+const message = i18n`你好，${name}，我叫${myName}`
 
-const vueI18n = createI18n({
-  locale: 'zh',
-  messages: {
-    zh: {
-      '你好，{a}，我叫{b}，今年{c}岁': '你好，{a}，我叫{b}，今年{c}岁'
-    },
-    en: {
-      '你好，{a}，我叫{b}，今年{c}岁': 'Hello {a}, my name is {b}, I am {c} years old'
-    }
-  }
-})
-
-const i18n = createI18nTag(vueI18n.global.t)
-
-const name = 'Alice'
-const myName = 'Bob' 
-const age = 25
-const message = i18n`你好，${name}，我叫${myName}，今年${age}岁`
+// 提取结果
+{ "你好，{a}，我叫{b}": "你好，{a}，我叫{b}" }
 ```
 
-#### createI18nTag 函数， 可以参考自行实现
-如果你使用其他国际化库，可以参考以下模式创建兼容函数：
+### 创建 i18n 函数
+
 ```javascript
-/**
- * 创建支持模板字符串的 i18n 标签函数
- * @param {Function} t - 翻译函数，如 Vue-i18n 的 $t 函数
- * @returns {Function} 标签模板函数
- */
+// 简单示例
 function createI18nTag(t) {
-   return function (temp: string[], ...values: any[]) {
-    const template = temp.reduce((prev, cur, index) => `${prev}{${generateVarName(index)}}${cur}`);
-    const params = values.reduce((prev, cur, index) => ({ ...prev, [generateVarName(index)]: cur }), {});
-    return t(template, params);
+  return function (strings, ...values) {
+    const template = strings.reduce((prev, cur, i) => 
+      prev + `{${String.fromCharCode(97 + i)}}` + cur
+    )
+    const params = values.reduce((obj, val, i) => {
+      obj[String.fromCharCode(97 + i)] = val
+      return obj
+    }, {})
+    return t(template, params)
   }
 }
 
-function generateVarName(index) {
-  const charCode = 97 + (index % 26);
-  const repeat = Math.floor(index / 26) + 1;
-  return String.fromCharCode(charCode).repeat(repeat);
-}
+// 使用示例
+const i18n = createI18nTag(yourTranslateFunction)
+const message = i18n`你好，${name}`
 ```
 
-### Vite 插件使用
+## 🔌 Vite 插件
 
-在 Vite 项目中，可以使用 Vite 插件进行开发时的实时转换， 不直接修改源代码
+在 Vite 项目中使用插件进行开发时实时转换：
 
 ```javascript
 // vite.config.js
@@ -246,14 +177,12 @@ import { vitePluginI18nMark } from 'i18n-mark/vite'
 export default defineConfig({
   plugins: [
     vitePluginI18nMark({
+      include: ['src/**/*.{js,ts,vue}'],
       i18nTag: 'i18n',
-      i18nImport: {
-        path: '@/utils/i18n',
-        type: 'default'
-      }
+      i18nImport: '@/utils/i18n'
     })
   ]
 })
 ```
 
-> 📖 **详细文档**：[Vite 插件使用指南](./docs/README.md)
+> 📖 **详细文档**：[Vite 插件使用指南](https://github.com/huise513/i18n-mark/blob/main/docs/README.md)

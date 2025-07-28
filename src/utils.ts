@@ -1,5 +1,5 @@
 import { globSync } from "glob";
-import { EntryConfigType } from "./types";
+import { FileMatchConfigType } from "./types";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { execSync } from "node:child_process";
@@ -69,35 +69,49 @@ export function getCodeByPath(absolutePath: string) {
   return readFileSync(absolutePath, "utf-8");
 }
 
-export function findEntryFilesPath(option: EntryConfigType): string[] {
+/**
+ * 查找匹配的文件路径
+ * 支持新的 include/exclude 模式和 Git 暂存区文件过滤
+ */
+export function findEntryFilesPath(option: FileMatchConfigType): string[] {
+  const includePatterns = option.include || [];
+  const excludePatterns = option.exclude || [];
+  
   if (option.staged) {
-    const entry = option.entry;
+    // Git 暂存区模式：先获取暂存区文件，再应用 include/exclude 过滤
     const stagedFiles = getStagedFiles();
-    const entryFiles = stagedFiles.filter((file) =>
-      file.startsWith(entry)
-    );
-    const relativePaths = entryFiles.map((file) =>
-      relative(entry, file)
-    );
-    const unixRelativePaths = relativePaths.map(toUnixPath);
-    const matchedRelativePaths = micromatch(unixRelativePaths, option.ignore);
-    const files = unixRelativePaths
-      .filter((v) => !matchedRelativePaths.includes(v))
-      .map((relativePath) => join(entry, relativePath));
-    return files;
+    const unixStagedFiles = stagedFiles.map(toUnixPath);
+    
+    // 应用 include 模式过滤
+    let matchedFiles = unixStagedFiles;
+    if (includePatterns.length > 0) {
+      matchedFiles = micromatch(unixStagedFiles, includePatterns);
+    }
+    
+    // 应用 exclude 模式过滤
+    if (excludePatterns.length > 0) {
+      const excludedFiles = micromatch(matchedFiles, excludePatterns);
+      matchedFiles = matchedFiles.filter(file => !excludedFiles.includes(file));
+    }
+    
+    return matchedFiles;
   }
-  const patterns = option.extensions!.map(
-    (ext) => `${option.entry}/**/*.${ext}`
-  );
+  
+  // 普通模式：使用 glob 模式匹配文件
   const files: string[] = [];
-  for (const pattern of patterns) {
+  
+  // 使用 include 模式查找文件
+  for (const pattern of includePatterns) {
     const found = globSync(pattern, {
-      ignore: option.ignore,
+      ignore: excludePatterns,
       nodir: true,
+      absolute: true
     });
     files.push(...found);
   }
-  return files;
+  
+  // 去重并返回
+  return [...new Set(files)];
 }
 
 export function getStagedFiles() {

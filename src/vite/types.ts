@@ -1,17 +1,18 @@
 import { LogMode } from '../logger';
-import type { ExtractBaseType, MarkBaseType } from '../types';
+import type { ExtractBaseType, MarkBaseType, FileMatchConfigType } from '../types';
 
-export type BaseMarkType = Partial<MarkBaseType> & Partial<ExtractBaseType> 
+/**
+ * Vite 插件基础配置类型
+ * 继承标记和提取功能的基础配置
+ */
+export type BaseMarkType = Omit<FileMatchConfigType, 'staged'> & Partial<MarkBaseType> & Partial<ExtractBaseType>
 
 /**
  * Vite i18n插件配置选项
+ * 继承文件匹配配置，保持与主配置一致
  */
 export interface ViteI18nMarkPluginOptions extends BaseMarkType {
-  log?: LogMode;
-  enabled?: boolean;                 // 是否启用插件
-  extensions?: string[];                // 支持的文件扩展名
-  include?: string[];                 // 包含的文件模式
-  exclude?: string[];                 // 排除的文件模式
+  enabled?: boolean;                  // 是否启用插件
 }
 
 export type ResolvedOptions  = ViteI18nMarkPluginOptions & Required<BaseMarkType> & {

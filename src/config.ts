@@ -4,19 +4,28 @@ import { existFile, getCodeByPath, resolvePath } from "./utils";
 import { pathToFileURL } from "node:url";
 import { logger, LogMode } from "./logger";
 
+/**
+ * 默认配置
+ * 使用 include/exclude 模式进行文件匹配
+ */
 export const DEFAULT_CONFIG: ConfigType = {
-  entry: "./src",
-  ignore: ["**/node_modules/**", "**/dist/**"],
-  extensions: ["js", "jsx", "ts", "tsx", "vue"],
+  // 文件匹配配置
+  include: ["src/**/*.{js,jsx,ts,tsx,vue}"],
+  exclude: ["**/node_modules/**", "**/dist/**", "**/test/**", "**/tests/**"],
   staged: false,
-  log: LogMode.NONE,
+  
+  // 功能配置
   i18nTag: "i18n",
   i18nImport: "",
   ignoreComment: "i18n-ignore",
+  
+  // 提取配置
   output: "./src/locale/",
   langs: ["zh", "en"],
   fileMapping: 'fileMapping',
-  placeholder: ['{', '}']
+  placeholder: ['{', '}'],
+  
+  log: LogMode.FILE,
 }
 
 
@@ -36,12 +45,28 @@ function validateRequiredFields(config: any, requiredFields: ValidateConfigField
   }
 }
 
+/**
+ * 解析文件匹配模式
+ * 使用 include/exclude 模式进行文件匹配
+ */
+function resolveFilePatterns(config: Partial<ConfigType>): { include: string[]; exclude: string[] } {
+  return {
+    include: config.include || DEFAULT_CONFIG.include,
+    exclude: config.exclude || DEFAULT_CONFIG.exclude || []
+  };
+}
+
 // 通用配置解析函数
 function resolveConfig(config: Partial<ConfigType>, requiredFields: ValidateConfigFieldType[]): ConfigType {
   const mergedConfig = {
     ...DEFAULT_CONFIG,
     ...config
   };
+
+  // 解析文件匹配模式
+  const filePatterns = resolveFilePatterns(mergedConfig);
+  mergedConfig.include = filePatterns.include;
+  mergedConfig.exclude = filePatterns.exclude;
 
   validateRequiredFields(mergedConfig, requiredFields);
 
@@ -51,7 +76,6 @@ function resolveConfig(config: Partial<ConfigType>, requiredFields: ValidateConf
   logger.configure(logMode);
 
   // 解析路径
-  mergedConfig.entry = resolvePath(mergedConfig.entry);
   if (mergedConfig.output) {
     mergedConfig.output = resolvePath(mergedConfig.output);
   }
@@ -60,11 +84,11 @@ function resolveConfig(config: Partial<ConfigType>, requiredFields: ValidateConf
 }
 
 export function resolveMarkConfig(config: Partial<MarkConfigType>): ConfigType {
-  return resolveConfig(config, ['entry', 'i18nTag']);
+  return resolveConfig(config, ['i18nTag']);
 }
 
 export function resolveExtractConfig(config: Partial<ExtractConfigType>): ConfigType {
-  return resolveConfig(config, ['entry', 'i18nTag', 'output', 'langs', 'fileMapping', (resolveConfig) => {
+  return resolveConfig(config, ['i18nTag', 'output', 'langs', 'fileMapping', (resolveConfig) => {
     const rs = Array.isArray(resolveConfig.placeholder) && resolveConfig.placeholder.length > 0
     return rs ? null : 'placeholder must be array and length > 0'
   }]);
