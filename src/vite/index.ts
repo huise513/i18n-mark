@@ -2,9 +2,8 @@ import type { Plugin } from 'vite';
 import { Transformer } from './transform';
 import type { ResolvedOptions, ViteI18nMarkPluginOptions } from './types';
 import { resolveOptions } from './utils';
-import micromatch from 'micromatch';
 import { logger } from '../logger';
-import { toUnixPath } from '../utils';
+import { matchFile, toUnixPath } from '../utils';
 import { generateLocaleFiles } from '../extract';
 
 /**
@@ -13,7 +12,8 @@ import { generateLocaleFiles } from '../extract';
  * @param options 插件配置选项
  * @returns Vite插件对象
  */
-function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin {
+
+export default function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin {
   let resolvedOptions: ResolvedOptions;
   let currentTransformer: Transformer;
   return {
@@ -69,14 +69,13 @@ function shouldTransform(filePath: string, options: ViteI18nMarkPluginOptions): 
   }
   filePath = toUnixPath(filePath)
   if (options.include && options.include.length > 0) {
-    const isIncluded = micromatch.isMatch(filePath, options.include);
+    const isIncluded = matchFile(filePath, options.include);
     if (!isIncluded) {
       return false;
     }
   }
-
   if (options.exclude && options.exclude.length > 0) {
-    const isExcluded = micromatch.isMatch(filePath, options.exclude);
+    const isExcluded = matchFile(filePath, options.exclude);
     if (isExcluded) {
       return false;
     }
@@ -85,9 +84,4 @@ function shouldTransform(filePath: string, options: ViteI18nMarkPluginOptions): 
   return true;
 }
 
-// 导出类型和工具函数
 export type { ViteI18nMarkPluginOptions } from './types';
-export { resolveOptions } from './utils';
-
-// 默认导出
-export default vitePluginI18nMark;

@@ -1,23 +1,30 @@
-import {defineBuildConfig} from 'unbuild'
+import { defineBuildConfig } from 'unbuild'
 
-export default defineBuildConfig({
-  entries: [
-    'src/index',
-    {
-      input: 'src/cli',
-      name: 'cli',
+export default defineBuildConfig([
+  {
+    entries: [
+      'src/index',
+      'src/cli',
+    ],
+    declaration: true,
+    clean: true,
+    failOnWarn: false,
+    rollup: {
+      emitCJS: true,
     },
-    {
-      input: 'src/vite/index.ts',
-      name: 'vite',
-      declaration: true
-    }
-  ],
-  declaration: true,
-  clean: true,
-  rollup: {
-    emitCJS: true,
-    inlineDependencies: true
+    externals: []
   },
-  externals: ['vite']
-})
+  {
+    entries: [
+      'src/vite/index'
+    ],
+    declaration: true,
+    failOnWarn: false,
+    rollup: {
+      inlineDependencies: false
+    },
+    externals: [
+      'vite'
+    ]
+  }
+])

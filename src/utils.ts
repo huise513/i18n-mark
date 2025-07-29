@@ -135,3 +135,7 @@ export function getStagedFiles() {
 export function toUnixPath(filePath: string) {
   return filePath.replace(/\\/g, "/");
 }
+
+export function matchFile(filePath: string, patterns: string[]) {
+  return micromatch.isMatch(filePath, patterns);
+}
