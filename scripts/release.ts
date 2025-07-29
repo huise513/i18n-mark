@@ -170,5 +170,11 @@ function main() {
   
 }
 
-// 运行主函数
-main();
+try {
+  main();
+} catch (error) {
+  console.error('❌ 发布失败:', error);
+  runCommand('git reset --hard HEAD');
+  runCommand('git clean -fd');
+  console.log('✅ 所有变更已丢弃');
+}
