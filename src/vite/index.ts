@@ -1,10 +1,11 @@
 import type { Plugin } from 'vite';
 import { Transformer } from './transform';
-import type { ViteI18nMarkPluginOptions } from './types';
+import type { ResolvedOptions, ViteI18nMarkPluginOptions } from './types';
 import { resolveOptions } from './utils';
-import { extname, relative } from 'node:path';
 import micromatch from 'micromatch';
 import { logger } from '../logger';
+import { toUnixPath } from '../utils';
+import { generateLocaleFiles } from '../extract';
 
 /**
  * Vite i18n插件主入口
@@ -13,17 +14,19 @@ import { logger } from '../logger';
  * @returns Vite插件对象
  */
 function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions): Plugin {
-  const resolvedOptions = resolveOptions(options);
-  let currentTransformer: Transformer | null = null;
-  logger.configure(resolvedOptions.log);
-  if (resolvedOptions?.enabled !== false) {
-    currentTransformer = new Transformer(resolvedOptions);
-  }
+  let resolvedOptions: ResolvedOptions;
+  let currentTransformer: Transformer;
   return {
     name: 'vite-plugin-i18n-mark',
     enforce: 'pre',
     configResolved(config) {
+      resolvedOptions = resolveOptions(options);
+      logger.configure(resolvedOptions.log);
+      if (resolvedOptions?.enabled !== false) {
+        currentTransformer = new Transformer(resolvedOptions);
+      }
       resolvedOptions.isProduction = config.isProduction;
+      generateLocaleFiles(resolvedOptions);
     },
 
     transform(code, id) {
@@ -64,16 +67,16 @@ function shouldTransform(filePath: string, options: ViteI18nMarkPluginOptions): 
   if (filePath.includes('node_modules')) {
     return false;
   }
-  const resolvePath = relative(process.cwd(), filePath)
+  filePath = toUnixPath(filePath)
   if (options.include && options.include.length > 0) {
-    const isIncluded = micromatch.isMatch(resolvePath, options.include);
+    const isIncluded = micromatch.isMatch(filePath, options.include);
     if (!isIncluded) {
       return false;
     }
   }
 
   if (options.exclude && options.exclude.length > 0) {
-    const isExcluded = micromatch.isMatch(resolvePath, options.exclude);
+    const isExcluded = micromatch.isMatch(filePath, options.exclude);
     if (isExcluded) {
       return false;
     }

@@ -65,17 +65,11 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
   if (!entries.length) {
     return
   }
+  generateLocaleFiles(config);
   const { output, langs, fileMapping } = config;
-  const outpath = resolvePath(output);
-  if (!existFile(outpath)) {
-    mkdirSync(outpath, { recursive: true });
-  }
-
-  let groupFilePath = `${outpath}/${fileMapping}.json`;
-  let oldGroups = {};
-  if (existFile(groupFilePath)) {
-    oldGroups = JSON.parse(getCodeByPath(groupFilePath));
-  }
+  const absoluteOutpath = resolvePath(output);
+  let groupFilePath = `${absoluteOutpath}/${fileMapping}.json`;
+  let oldGroups = JSON.parse(getCodeByPath(groupFilePath));
   const groups = groupEntriesByKey(entries);
   const diff = detectI18NDifferences(oldGroups, groups);
   if (!autoRemoveKey) {
@@ -83,12 +77,9 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
   }
   writeFileByCode(groupFilePath, JSON.stringify(groups, null, 2));
   langs.forEach((lang) => {
-    let filePath = `${outpath}/${lang}.json`;
-    let data: Record<string, string> = {};
-    if (existFile(filePath)) {
-      const code = getCodeByPath(filePath);
-      data = JSON.parse(code);
-    }
+    let filePath = `${absoluteOutpath}/${lang}.json`;
+    const code = getCodeByPath(filePath);
+    let data: Record<string, string> = JSON.parse(code);
     let hasChanged = false
     entries.forEach((v) => {
       if (data[v.key]) {
@@ -131,7 +122,6 @@ function detectI18NDifferences(
   newKeys: KeyUsageMapType
 ): I18nDiffReportType {
   const allKeys = new Set([...Object.keys(oldKeys), ...Object.keys(newKeys)]);
-
   const result: I18nDiffReportType = {
     addedKeys: {},
     removedKeys: {},
@@ -149,4 +139,24 @@ function detectI18NDifferences(
   });
 
   return result;
+}
+
+
+export function generateLocaleFiles(config: ExtractConfigType) {
+  const { output, langs, fileMapping } = config;
+  const outpath = resolvePath(output);
+  if (!existFile(outpath)) {
+    mkdirSync(outpath, { recursive: true });
+  }
+  langs.forEach((lang) => {
+    let filePath = `${outpath}/${lang}.json`;
+    let data: Record<string, string> = {};
+    if (!existFile(filePath)) {
+      writeFileByCode(filePath, JSON.stringify(data, null, 2));
+    }
+  })
+  let groupFilePath = `${outpath}/${fileMapping}.json`;
+  if (!existFile(groupFilePath)) {
+    writeFileByCode(groupFilePath, JSON.stringify({}, null, 2));
+  }
 }

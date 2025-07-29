@@ -1,14 +1,11 @@
 import type { ResolvedOptions, ViteI18nMarkPluginOptions } from './types';
-import { DEFAULT_CONFIG } from '../config';
+import { resolveExtractConfig } from '../config';
 
 /**
  * 默认插件配置
  */
 const DEFAULT_PLUGIN_OPTIONS: ViteI18nMarkPluginOptions = {
-  ...DEFAULT_CONFIG,
   enabled: true,
-  include: ['src/**/*.{vue,js,ts,jsx,tsx}'],
-  exclude: ['node_modules/**', 'dist/**']
 };
 
 /**
@@ -17,9 +14,9 @@ const DEFAULT_PLUGIN_OPTIONS: ViteI18nMarkPluginOptions = {
  * @returns 解析后的完整配置
  */
 export function resolveOptions(options?: ViteI18nMarkPluginOptions): ResolvedOptions {
-  const resolved = {
+  const resolved = resolveExtractConfig({
     ...DEFAULT_PLUGIN_OPTIONS,
     ...options,
-  } as ResolvedOptions
+  }) as ResolvedOptions
   return resolved;
 }
