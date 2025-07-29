@@ -2,9 +2,7 @@ import {defineBuildConfig} from 'unbuild'
 
 export default defineBuildConfig({
   entries: [
-    // 主入口文件
     'src/index',
-    // CLI 入口文件
     {
       input: 'src/cli',
       name: 'cli',
@@ -12,6 +10,7 @@ export default defineBuildConfig({
     {
       input: 'src/vite/index.ts',
       name: 'vite',
+      declaration: true
     }
   ],
   declaration: true,
