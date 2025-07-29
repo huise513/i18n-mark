@@ -51,8 +51,8 @@ function validateRequiredFields(config: any, requiredFields: ValidateConfigField
  */
 function resolveFilePatterns(config: Partial<ConfigType>): { include: string[]; exclude: string[] } {
   return {
-    include: config.include || DEFAULT_CONFIG.include,
-    exclude: config.exclude || DEFAULT_CONFIG.exclude || []
+    include: (config.include || DEFAULT_CONFIG.include).map(v => resolvePath(v)),
+    exclude: (config.exclude || DEFAULT_CONFIG.exclude).map(v => resolvePath(v)),
   };
 }
 
