@@ -13,6 +13,7 @@ type VersionType = 'patch' | 'minor' | 'major';
  * 执行命令并输出结果
  * @param command 要执行的命令
  * @param options 执行选项
+ * @throws 命令执行失败时抛出错误
  */
 function runCommand(command: string, options: { silent?: boolean } = {}) {
   console.log(`🔄 执行命令: ${command}`);
@@ -23,9 +24,8 @@ function runCommand(command: string, options: { silent?: boolean } = {}) {
     });
     return result;
   } catch (error) {
-    console.error(`❌ 命令执行失败: ${command}`);
     console.error(error);
-    process.exit(1);
+    throw new Error(`命令执行失败: ${command}`);
   }
 }
 
@@ -73,19 +73,21 @@ function updateVersion(versionType: VersionType): string {
 
 /**
  * 检查工作目录是否干净
+ * @throws 工作目录不干净或无法检查git状态时抛出错误
  */
 function checkWorkingDirectory() {
   try {
     const status = runCommand('git status --porcelain', { silent: true });
     if (status && status.trim()) {
-      console.error('❌ 工作目录不干净，请先提交或暂存所有更改');
       console.error('未提交的更改:');
       console.error(status);
-      process.exit(1);
+      throw new Error('工作目录不干净');
     }
   } catch (error) {
-    console.error('❌ 无法检查 git 状态，请确保在 git 仓库中');
-    process.exit(1);
+    if (error.message === '工作目录不干净') {
+      throw error;
+    }
+    throw new Error('无法检查 git 状态');
   }
 }
 
@@ -136,7 +138,7 @@ function main() {
     console.error('❌ 请指定版本类型: patch, minor, 或 major');
     console.error('用法: bun scripts/release.ts <patch|minor|major> [--skip-push] [--skip-tests]');
     console.error('示例: bun scripts/release.ts patch');
-    process.exit(1);
+    throw new Error('无效的版本类型参数');
   }
   
   console.log('🚀 开始发布流程...');
@@ -170,11 +172,56 @@ function main() {
   
 }
 
+/**
+ * 安全回滚函数
+ * @param error 错误信息
+ */
+function safeRollback(error: any) {
+  console.error('❌ 发布失败:', error.message || error);
+  
+  try {
+    // 检查是否在git仓库中
+    execSync('git rev-parse --git-dir', { stdio: 'pipe' });
+    
+    console.log('🔄 正在回滚更改...');
+    
+    // 重置到HEAD
+    try {
+      execSync('git reset --hard HEAD', { stdio: 'inherit' });
+      console.log('✅ Git重置完成');
+    } catch (resetError) {
+      console.warn('⚠️ Git重置失败，可能需要手动处理');
+    }
+    
+    // 清理未跟踪的文件
+    try {
+      execSync('git clean -fd', { stdio: 'inherit' });
+      console.log('✅ 清理未跟踪文件完成');
+    } catch (cleanError) {
+      console.warn('⚠️ 清理未跟踪文件失败');
+    }
+    
+    console.log('✅ 回滚完成');
+  } catch (gitError) {
+    console.warn('⚠️ 不在git仓库中或git命令失败，跳过回滚');
+  }
+  
+  process.exit(1);
+}
+
+// 处理未捕获的异常
+process.on('uncaughtException', (error) => {
+  console.error('❌ 未捕获的异常:', error);
+  safeRollback(error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ 未处理的Promise拒绝:', reason);
+  safeRollback(reason);
+});
+
 try {
   main();
 } catch (error) {
-  console.error('❌ 发布失败:', error);
-  runCommand('git reset --hard HEAD');
-  runCommand('git clean -fd');
-  console.log('✅ 所有变更已丢弃');
+  safeRollback(error);
 }
