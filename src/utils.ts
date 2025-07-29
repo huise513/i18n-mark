@@ -62,7 +62,7 @@ export function existFile(absolutePath: string) {
 }
 
 export function resolvePath(relativePath: string) {
-  return isAbsolute(relativePath) ? relativePath : resolve(process.cwd(), relativePath);
+  return isAbsolute(relativePath) ? toUnixPath(relativePath) : toUnixPath(resolve(process.cwd(), relativePath));
 }
 
 export function getCodeByPath(absolutePath: string) {
