@@ -10,7 +10,7 @@ import { logger, LogMode } from "./logger";
  */
 export const DEFAULT_CONFIG: ConfigType = {
   // 文件匹配配置
-  include: ["src/**/*.{js,jsx,ts,tsx,vue}"],
+  include: ["src/**/*"],
   exclude: ["**/node_modules/**", "**/dist/**", "**/test/**", "**/tests/**"],
   staged: false,
   

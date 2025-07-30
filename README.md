@@ -99,7 +99,7 @@ export default {
 
 | 选项 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `include` | `string[]` | `['src/**/*.{js,jsx,ts,tsx,vue}']` | 包含的文件模式（glob） |
+| `include` | `string[]` | `['src/**/*']` | 包含的文件模式（glob） |
 | `exclude` | `string[]` | `['**/node_modules/**', '**/dist/**']` | 排除的文件模式（glob） |
 | `staged` | `boolean` | `false` | 只处理 Git 暂存区文件 |
 | `i18nTag` | `string` | `'i18n'` | i18n 标记函数名 |
