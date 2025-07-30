@@ -46,7 +46,6 @@ export function extractFiles(
 }
 
 export function extractCode(code: string, config: ExtractBaseType, filePath?: string) {
-  logger.fileStart(filePath);
   let fn = extractFromJsCode;
   if (filePath.endsWith(".vue")) {
     fn = extractFromVueCode;
@@ -68,18 +67,25 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
   generateLocaleFiles(config);
   const { output, langs, fileMapping } = config;
   const absoluteOutpath = resolvePath(output);
-  let groupFilePath = `${absoluteOutpath}/${fileMapping}.json`;
-  let oldGroups = JSON.parse(getCodeByPath(groupFilePath));
+  const groupFilePath = `${absoluteOutpath}/${fileMapping}.json`;
+  const oldGroups: Record<string, string[]> = JSON.parse(getCodeByPath(groupFilePath));
   const groups = groupEntriesByKey(entries);
   const diff = detectI18NDifferences(oldGroups, groups);
   if (!autoRemoveKey) {
-    Object.assign(groups, oldGroups);
+    Object.entries(oldGroups).forEach(([key, oldPaths]) => {
+      if (groups[key]) {
+        const mergedPaths = groups[key].concat(oldPaths);
+        groups[key] = [...new Set(mergedPaths)];
+      } else {
+        groups[key] = oldPaths;
+      }
+    });
   }
   writeFileByCode(groupFilePath, JSON.stringify(groups, null, 2));
   langs.forEach((lang) => {
-    let filePath = `${absoluteOutpath}/${lang}.json`;
+    const filePath = `${absoluteOutpath}/${lang}.json`;
     const code = getCodeByPath(filePath);
-    let data: Record<string, string> = JSON.parse(code);
+    const data: Record<string, string> = JSON.parse(code);
     let hasChanged = false
     entries.forEach((v) => {
       if (data[v.key]) {
@@ -149,13 +155,13 @@ export function generateLocaleFiles(config: ExtractConfigType) {
     mkdirSync(outpath, { recursive: true });
   }
   langs.forEach((lang) => {
-    let filePath = `${outpath}/${lang}.json`;
-    let data: Record<string, string> = {};
+    const filePath = `${outpath}/${lang}.json`;
+    const data: Record<string, string> = {};
     if (!existFile(filePath)) {
       writeFileByCode(filePath, JSON.stringify(data, null, 2));
     }
   })
-  let groupFilePath = `${outpath}/${fileMapping}.json`;
+  const groupFilePath = `${outpath}/${fileMapping}.json`;
   if (!existFile(groupFilePath)) {
     writeFileByCode(groupFilePath, JSON.stringify({}, null, 2));
   }

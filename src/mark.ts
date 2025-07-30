@@ -34,7 +34,6 @@ export function markFile(filePath: string, option: MarkCodeOptionType) {
 }
 
 export function markCode(code: string, option: MarkCodeOptionType, filePath: string) {
-  logger.fileStart(filePath);
   const ext = extname(filePath).slice(1);
   let newCode = '';
   if (["js", "jsx", "ts", "tsx"].includes(ext)) {
