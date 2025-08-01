@@ -40,6 +40,12 @@ class Logger {
         }
     }
 
+    debug(message: string): void {
+        if (this.mode !== LogMode.NONE) {
+            console.debug(this.formatMessage(message, colors.blue));
+        }
+    }
+
     error(message: string): void {
         console.error(this.formatMessage(message, colors.red));
     }

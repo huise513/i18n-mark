@@ -49,6 +49,7 @@
 		"node": ">=16.0.0"
 	},
 	"scripts": {
+		"dev": "bun ./src/cli.ts -c ./config.js",
 		"build": "unbuild",
 		"test": "vitest run",
 		"prepublishOnly": "pnpm run test && pnpm run build",

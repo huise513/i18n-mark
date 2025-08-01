@@ -13,21 +13,25 @@ export const DEFAULT_CONFIG: ConfigType = {
   include: ["src/**/*"],
   exclude: ["**/node_modules/**", "**/dist/**", "**/test/**", "**/tests/**"],
   staged: false,
-  
+
   // 功能配置
   i18nTag: "i18n",
   i18nImport: "",
   ignoreComment: "i18n-ignore",
-  
+
   // 提取配置
   output: "./src/locale/",
   langs: ["zh", "en"],
   fileMapping: 'fileMapping',
   placeholder: ['{', '}'],
-  
+
   log: LogMode.FILE,
 }
 
+/**
+ * 支持的文件类型扩展名
+ */
+export const SUPPORTED_EXTENSIONS = ['js', 'ts', 'jsx', 'tsx', 'mjs', 'vue'];
 
 // 通用配置验证函数
 function validateRequiredFields(config: any, requiredFields: ValidateConfigFieldType[]): void {
@@ -47,11 +51,20 @@ function validateRequiredFields(config: any, requiredFields: ValidateConfigField
 
 /**
  * 解析文件匹配模式
- * 使用 include/exclude 模式进行文件匹配
+ * 支持用户自定义文件后缀或使用默认支持的所有扩展名
  */
 function resolveFilePatterns(config: Partial<ConfigType>): { include: string[]; exclude: string[] } {
+  const ext_str = `.{${SUPPORTED_EXTENSIONS.join(',')}}`
   return {
-    include: (config.include || DEFAULT_CONFIG.include).map(v => resolvePath(v)),
+    include: (config.include || DEFAULT_CONFIG.include).map(v => {
+      const resolved = resolvePath(v);
+      // 如果路径已经包含文件扩展名（如 *.js, *.{js,ts} 等），则直接使用
+      if (resolved.match(/\*\.[*a-zA-Z{},]+$/)) {
+        return resolved;
+      }
+      // 否则添加默认的所有支持扩展名
+      return resolved + ext_str;
+    }),
     exclude: (config.exclude || DEFAULT_CONFIG.exclude).map(v => resolvePath(v)),
   };
 }
@@ -92,6 +105,37 @@ export function resolveExtractConfig(config: Partial<ExtractConfigType>): Config
     const rs = Array.isArray(resolveConfig.placeholder) && resolveConfig.placeholder.length > 0
     return rs ? null : 'placeholder must be array and length > 0'
   }]);
+}
+
+export function resolveTranslateConfig(config: Partial<ConfigType>): ConfigType {
+  const resolvedConfig = resolveConfig(config, ['output', 'langs', (resolvedConfig) => {
+    if (!resolvedConfig.translation) {
+      return 'translation config is required for translate command';
+    }
+    if (!resolvedConfig.translation.services || resolvedConfig.translation.services.length === 0) {
+      return 'translation.services must be configured with at least one service';
+    }
+    if (!resolvedConfig.translation.defaultService) {
+      return 'translation.defaultService must be specified';
+    }
+    return null;
+  }]);
+
+  // 设置翻译配置的默认值
+  if (resolvedConfig.translation) {
+    resolvedConfig.translation = {
+      batchSize: 10,
+      retryAttempts: 3,
+      retryDelay: 1000,
+      skipExisting: true,
+      forceUpdate: false,
+      forceRefresh: false,
+      translateMapping: 'translateMapping',
+      ...resolvedConfig.translation
+    };
+  }
+
+  return resolvedConfig;
 }
 
 /**

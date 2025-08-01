@@ -18,6 +18,12 @@ const message = i18n`你好世界`;
 // 从代码中提取
 i18n`你好世界` -> { "你好世界": "你好世界" }
 ```
+
+**翻译（Translate）**：自动翻译提取的字符串到多种语言
+```javascript
+// 自动翻译
+{ "你好世界": "你好世界" } -> { "你好世界": "Hello World" }
+```
 ## ✨ 特性
 
 - 🎯 **智能识别**：自动识别代码中的中文字符串，无需手动标记
@@ -26,6 +32,8 @@ i18n`你好世界` -> { "你好世界": "你好世界" }
 - ⚙️ **配置灵活**：支持 CLI 参数、配置文件和编程式调用
 - 🎨 **自定义标记**：可自定义 i18n 函数名和导入路径
 - 📋 **Git 集成**：支持只处理 Git 暂存区文件
+- 🌐 **自动翻译**：支持百度、腾讯、阿里、有道等翻译服务
+- 📊 **智能管理**：翻译记录管理，避免重复翻译
 
 ## 📦 安装
 
@@ -49,6 +57,9 @@ i18n-mark extract
 
 # 标记并提取（一步完成）
 i18n-mark
+
+# 翻译国际化字符串
+i18n-mark translate
 
 # 使用配置文件
 i18n-mark -c i18n.config.js
@@ -78,6 +89,22 @@ extract({
   output: './src/locale/',
   langs: ['zh', 'en']
 })
+
+// 翻译国际化字符串
+translate({
+  output: './src/locale/',
+  langs: ['zh', 'en'],
+  translation: {
+    services: [
+      {
+        name: 'baidu',
+        apiKey: 'your-api-key',
+        apiSecret: 'your-api-secret'
+      }
+    ],
+    defaultService: 'baidu'
+  }
+})
 ```
 
 ### 配置文件
@@ -91,7 +118,21 @@ export default {
   i18nTag: 'i18n',
   i18nImport: '@/utils/i18n',
   output: './src/locale/',
-  langs: ['zh', 'en']
+  langs: ['zh', 'en'],
+  
+  // 翻译配置
+  translation: {
+    services: [
+      {
+        name: 'baidu',
+        apiKey: 'your-baidu-api-key',
+        apiSecret: 'your-baidu-api-secret'
+      }
+    ],
+    defaultService: 'baidu',
+    batchSize: 10,
+    translateMapping: 'translateMapping'
+  }
 }
 ```
 
@@ -99,7 +140,7 @@ export default {
 
 | 选项 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `include` | `string[]` | `['src/**/*']` | 包含的文件模式（glob） |
+| `include` | `string[]` | `['src/**/*']` | 包含的文件模式（glob），只支持js/ts/jsx/tsx/vue/mjs文件 |
 | `exclude` | `string[]` | `['**/node_modules/**', '**/dist/**']` | 排除的文件模式（glob） |
 | `staged` | `boolean` | `false` | 只处理 Git 暂存区文件 |
 | `i18nTag` | `string` | `'i18n'` | i18n 标记函数名 |
@@ -110,6 +151,21 @@ export default {
 | `langs` | `string[]` | `['zh', 'en']` | 支持的语言列表 |
 | `fileMapping` | `string` | `'fileMapping'` | 文件映射配置 |
 | `placeholder` | `[string, string?]` | `['{', '}']` | 占位符配置 |
+| `translation` | `object` | `undefined` | 翻译服务配置 |
+
+### 翻译配置选项
+
+| 选项 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `services` | `array` | `[]` | 翻译服务配置列表 |
+| `defaultService` | `string` | - | 默认翻译服务名称 |
+| `fallbackServices` | `string[]` | `[]` | 备用翻译服务列表 |
+| `batchSize` | `number` | `10` | 批量翻译大小 |
+| `retryAttempts` | `number` | `3` | 重试次数 |
+| `retryDelay` | `number` | `1000` | 重试延迟（毫秒） |
+| `skipExisting` | `boolean` | `true` | 跳过已翻译的内容 |
+| `forceUpdate` | `boolean` | `false` | 强制更新已有翻译 |
+| `translateMapping` | `string` | `'translateMapping'` | 翻译记录文件名（保存在 output 目录中） |
 
 ### i18nImport 配置
 
@@ -127,7 +183,45 @@ i18nImport: {
 }
 ```
 
+### 翻译服务配置
 
+支持的翻译服务：
+
+#### 百度翻译
+```javascript
+{
+  name: 'baidu',
+  apiKey: 'your-app-id',
+  apiSecret: 'your-secret-key'
+}
+```
+
+#### 腾讯翻译
+```javascript
+{
+  name: 'tencent',
+  apiKey: 'your-secret-id',
+  apiSecret: 'your-secret-key'
+}
+```
+
+#### 阿里翻译
+```javascript
+{
+  name: 'alibaba',
+  apiKey: 'your-access-key-id',
+  apiSecret: 'your-access-key-secret'
+}
+```
+
+#### 有道翻译
+```javascript
+{
+  name: 'youdao',
+  apiKey: 'your-app-key',
+  apiSecret: 'your-app-secret'
+}
+```
 
 ## 🔧 i18n 标签函数
 

@@ -3,13 +3,15 @@ import { generateVarName } from './utils'
 
 export { mark } from './mark'
 export { extract } from './extract'
+export { translate } from './translate'
 export { markJsCode } from './mark-js'
 export { markVueCode } from './mark-vue'
 export { extractFromJsCode } from './extract-js'
 export { extractFromVueCode } from './extract-vue'
+
 export { LogMode } from './logger'
-export type { MarkConfigType, ExtractConfigType, I18nImportConfig } from './types'
-export { I18nImportType } from './types'
+export type { MarkConfigType, ExtractConfigType, I18nImportConfig, TranslationOptions, TranslationServiceConfig } from './types'
+export { I18nImportType, TranslationServiceName } from './types'
 
 export function defineConfig(config: Partial<ConfigType>) {
   return config

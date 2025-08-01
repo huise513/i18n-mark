@@ -5,6 +5,7 @@ import { isAbsolute, join, relative, resolve } from "node:path";
 import { execSync } from "node:child_process";
 import micromatch from "micromatch";
 import { logger } from "./logger";
+import { SUPPORTED_EXTENSIONS } from "./config";
 
 export function hasChinese(str: string) {
   return /[\u4e00-\u9fa5]/.test(str);
@@ -93,8 +94,7 @@ export function findEntryFilesPath(option: FileMatchConfigType): string[] {
       const excludedFiles = micromatch(matchedFiles, excludePatterns);
       matchedFiles = matchedFiles.filter(file => !excludedFiles.includes(file));
     }
-    
-    return matchedFiles;
+    return getSupportedFiles(matchedFiles);
   }
   
   // 普通模式：使用 glob 模式匹配文件
@@ -111,7 +111,7 @@ export function findEntryFilesPath(option: FileMatchConfigType): string[] {
   }
   
   // 去重并返回
-  return [...new Set(files)];
+  return getSupportedFiles([...new Set(files)]);
 }
 
 export function getStagedFiles() {
@@ -138,4 +138,8 @@ export function toUnixPath(filePath: string) {
 
 export function matchFile(filePath: string, patterns: string[]) {
   return micromatch.isMatch(filePath, patterns);
+}
+
+export function getSupportedFiles(fileList: string[]) {
+  return fileList.filter(f=> SUPPORTED_EXTENSIONS.includes(f.split('.').pop()))
 }
