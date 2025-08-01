@@ -10,7 +10,7 @@
 export default {
   // 基础配置
   include: ['src/**/*.{js,ts,vue}'],
-  output: './src/locale/',
+  localeDir: './src/locale/',
   langs: ['zh', 'en', 'ja'],
   
   // 翻译配置
@@ -53,7 +53,7 @@ i18n-mark translate
 import { translate } from 'i18n-mark'
 
 await translate({
-  output: './src/locale/',
+  localeDir: './src/locale/',
   langs: ['zh', 'en', 'ja'],
   translation: {
     services: [{ name: 'baidu', apiKey: '...', apiSecret: '...' }],

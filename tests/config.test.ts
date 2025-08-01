@@ -116,13 +116,13 @@ describe('Config', () => {
       const config = resolveExtractConfig({
         include: ['src/**/*.js'],
         i18nTag: 'i18n',
-        output: './locales',
+        localeDir: './locales',
         langs: ['zh', 'en'],
         fileMapping: 'mapping'
       });
       
       expect(config.i18nTag).toBe('i18n');
-      expect(config.output).toBe('/resolved/./locales');
+      expect(config.localeDir).toBe('/resolved/./locales');
       expect(config.langs).toEqual(['zh', 'en']);
       expect(config.fileMapping).toBe('mapping');
       expect(config.placeholder).toEqual(['{', '}']);
@@ -134,14 +134,14 @@ describe('Config', () => {
         exclude: ['**/test/**'],
         staged: true,
         i18nTag: 'translate',
-        output: './i18n/locales',
+        localeDir: './i18n/locales',
         langs: ['zh', 'en', 'fr', 'ja'],
         fileMapping: 'customMapping',
         placeholder: ['{{', '}}'],
       });
       
       expect(config.i18nTag).toBe('translate');
-      expect(config.output).toBe('/resolved/./i18n/locales');
+      expect(config.localeDir).toBe('/resolved/./i18n/locales');
       expect(config.langs).toEqual(['zh', 'en', 'fr', 'ja']);
       expect(config.fileMapping).toBe('customMapping');
       expect(config.placeholder).toEqual(['{{', '}}']);
@@ -153,7 +153,7 @@ describe('Config', () => {
     it('应该使用默认配置值', () => {
       const config = resolveExtractConfig({
         i18nTag: 'i18n',
-        output: './locales',
+        localeDir: './locales',
         langs: ['zh'],
         fileMapping: 'mapping'
       });
@@ -171,12 +171,12 @@ describe('Config', () => {
     });
 
     it('应该验证必需配置项', () => {
-      const baseConfig = { include: ['src/**/*.js'], i18nTag: 'i18n', output: './locales', langs: ['zh'], fileMapping: 'mapping' };
+      const baseConfig = { include: ['src/**/*.js'], i18nTag: 'i18n', localeDir: './locales', langs: ['zh'], fileMapping: 'mapping' };
       
       expect(() => resolveExtractConfig({ ...baseConfig, i18nTag: '' }))
         .toThrow('Missing required config: i18nTag');
-      expect(() => resolveExtractConfig({ ...baseConfig, output: '' }))
-        .toThrow('Missing required config: output');
+      expect(() => resolveExtractConfig({ ...baseConfig, localeDir: '' }))
+        .toThrow('Missing required config: localeDir');
       expect(() => resolveExtractConfig({ ...baseConfig, langs: undefined }))
         .toThrow('Missing required config: langs');
       expect(() => resolveExtractConfig({ ...baseConfig, fileMapping: undefined }))
@@ -184,7 +184,7 @@ describe('Config', () => {
     });
 
     it('应该验证placeholder配置', () => {
-      const baseConfig = { i18nTag: 'i18n', output: './locales', langs: ['zh'], fileMapping: 'mapping' };
+      const baseConfig = { i18nTag: 'i18n', localeDir: './locales', langs: ['zh'], fileMapping: 'mapping' };
       
       expect(() => resolveExtractConfig({ ...baseConfig, placeholder: [] as any }))
         .toThrow('Missing required config: placeholder must be array and length > 0');
@@ -198,7 +198,7 @@ describe('Config', () => {
       const configContent = {
         include: ['src/**/*.js'],
         i18nTag: 'i18n',
-        output: './locales',
+        localeDir: './locales',
         langs: ['zh', 'en']
       };
       
@@ -219,7 +219,7 @@ describe('Config', () => {
         i18nImport: '@/utils/i18n',
         ignoreComment: 'skip-i18n',
         ignoreAttrs: ['data-test'],
-        output: './i18n/locales',
+        localeDir: './i18n/locales',
         langs: ['zh', 'en', 'fr'],
         fileMapping: 'customMapping',
         placeholder: ['{{', '}}']
@@ -238,7 +238,7 @@ describe('Config', () => {
       expect(config.i18nImport).toBe('@/utils/i18n');
       expect(config.ignoreComment).toBe('skip-i18n');
       expect(config.ignoreAttrs).toEqual(['data-test']);
-      expect(config.output).toBe('./i18n/locales');
+      expect(config.localeDir).toBe('./i18n/locales');
       expect(config.langs).toEqual(['zh', 'en', 'fr']);
       expect(config.fileMapping).toBe('customMapping');
       expect(config.placeholder).toEqual(['{{', '}}']);
@@ -251,12 +251,12 @@ describe('Config', () => {
       
       expect(config).toHaveProperty('include');
       expect(config).toHaveProperty('i18nTag');
-      expect(config).toHaveProperty('output');
+      expect(config).toHaveProperty('localeDir');
       expect(config).toHaveProperty('langs');
       expect(config.include).toEqual(['src/**/*']);
       expect(config.exclude).toEqual(['**/node_modules/**', '**/dist/**', '**/test/**', '**/tests/**']);
       expect(config.i18nTag).toBe('i18n');
-      expect(config.output).toBe('./src/locale/');
+      expect(config.localeDir).toBe('./src/locale/');
       expect(config.langs).toEqual(['zh', 'en']);
     });
 

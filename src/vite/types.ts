@@ -1,11 +1,11 @@
 import { LogMode } from '../shared/logger';
-import type { ExtractBaseType, MarkBaseType, FileMatchConfigType } from '../shared/types';
+import type { ConfigType } from '../shared/types';
 
 /**
  * Vite 插件基础配置类型
  * 继承标记和提取功能的基础配置
  */
-export type BaseMarkType = Omit<FileMatchConfigType, 'staged'> & Partial<MarkBaseType> & Partial<ExtractBaseType>
+export type BaseMarkType = Partial<Omit<ConfigType, 'staged'>>
 
 /**
  * Vite i18n插件配置选项

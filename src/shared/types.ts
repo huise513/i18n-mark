@@ -1,51 +1,36 @@
 import { LogMode } from "./logger";
 
-/**
- * 文件匹配配置接口
- * 使用现代的 include/exclude 模式进行文件匹配
- */
-export interface FileMatchConfigType {
-  include?: string[];                  // 包含的文件模式（glob 模式）
-  exclude?: string[];                 // 排除的文件模式（glob 模式）
-  staged?: boolean;                    // 是否只处理 Git 暂存区文件
-  log?: LogMode;                      // 日志模式
-}
-/**
- * 标记功能基础配置
- */
-export interface MarkBaseType {
+export interface ConfigType {
+  include: string[];
+  exclude: string[];
+  staged: boolean;                    // 是否只处理 Git 暂存区文件
+  log: LogMode;
   i18nTag: string;                    // i18n 标记函数名
   i18nImport?: string | I18nImportConfig; // i18n 导入配置
   ignoreAttrs?: string[];             // 忽略的属性名
   ignoreComment: string;              // 忽略注释标记
-}
-
-/**
- * 标记功能完整配置
- */
-export interface MarkConfigType extends FileMatchConfigType, MarkBaseType {
-}
-
-/**
- * 提取功能基础配置
- */
-export interface ExtractBaseType {
-  i18nTag: string;                    // i18n 标记函数名
-  output: string;                     // 输出目录
+  localeDir: string;                  // 输出目录
   langs: string[];                    // 支持的语言列表
   fileMapping: string;                // 文件映射配置
-  placeholder?: [string, string?];    // 占位符配置
-}
-
-/**
- * 提取功能完整配置
- */
-export interface ExtractConfigType extends FileMatchConfigType, ExtractBaseType {
-}
-
-export type ConfigType = MarkConfigType & ExtractConfigType & {
+  placeholder: [string, string?];    // 占位符配置
   translation?: TranslationOptions;
 };
+
+type LogConfigType = {
+  log?: LogMode;
+};
+
+export type FileMatchConfigType = Partial<Pick<ConfigType, 'include' | 'exclude' | 'staged'>>;
+
+export type MarkBaseType = Pick<ConfigType, 'i18nTag' | 'i18nImport' | 'ignoreAttrs' | 'ignoreComment'>;
+
+export type MarkConfigType = FileMatchConfigType & MarkBaseType & LogConfigType;
+
+export type ExtractBaseType = Pick<ConfigType, 'i18nTag' | 'localeDir' | 'langs' | 'fileMapping' | 'placeholder'>;
+
+export type ExtractConfigType = FileMatchConfigType & ExtractBaseType & LogConfigType;
+
+export type TranslateConfigType = Partial<Pick<ConfigType, 'localeDir' | 'langs' | 'translation'>> & LogConfigType;
 
 export interface I18nEntryType {
   key: string;
@@ -55,26 +40,6 @@ export interface I18nEntryType {
   filePath?: string;
 }
 
-/**
- * CLI 标记命令配置
- */
-export interface CliMarkConfigType {
-  include?: string[];                 // 包含的文件模式
-  exclude?: string[];                 // 排除的文件模式
-  config?: string;                    // 配置文件路径
-  staged?: boolean;                   // 是否只处理暂存区文件
-}
-
-/**
- * CLI 提取命令配置
- */
-export interface CliExtractConfigType {
-  include?: string[];                 // 包含的文件模式
-  exclude?: string[];                 // 排除的文件模式
-  config?: string;                    // 配置文件路径
-  output?: string;                    // 输出目录
-  staged?: boolean;                   // 是否只处理暂存区文件
-}
 
 export interface KeyUsageMapType {
   [key: string]: string[];
@@ -184,10 +149,10 @@ export interface TranslationOptions {
   services: TranslationServiceConfig[];
   defaultService: TranslationServiceName;
   fallbackServices?: TranslationServiceName[];
-  
+
   // 文件配置
   translateMapping?: string;  // 翻译记录文件路径，默认 '.i18n-translations.json'
-  
+
   // 翻译选项
   batchSize?: number;  // 默认 10
   retryAttempts?: number;  // 默认 3
@@ -195,25 +160,10 @@ export interface TranslationOptions {
   skipExisting?: boolean;  // 默认 true
   forceUpdate?: boolean;  // 默认 false
   forceRefresh?: boolean;  // 强制刷新所有翻译文件
-  
+
   // 批量导入选项
   importFile?: string;  // Excel 或 JSON 文件路径
   importFormat?: 'excel' | 'json';  // 导入格式
-}
-
-/**
- * CLI 翻译命令配置
- */
-export interface CliTranslateConfigType {
-  include?: string[];                 // 包含的文件模式
-  exclude?: string[];                 // 排除的文件模式
-  config?: string;                    // 配置文件路径
-  output?: string;                    // 输出目录
-  staged?: boolean;                   // 是否只处理暂存区文件
-  update?: boolean;                   // 强制更新已有翻译
-  importFile?: string;                // 导入文件路径
-  service?: string;                   // 指定翻译服务
-  refresh?: boolean;                  // 强制刷新所有翻译文件
 }
 
 /**

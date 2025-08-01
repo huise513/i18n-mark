@@ -86,13 +86,13 @@ mark({
 // 提取国际化字符串
 extract({
   include: ['src/**/*.{js,ts,vue}'],
-  output: './src/locale/',
+  localeDir: './src/locale/',
   langs: ['zh', 'en']
 })
 
 // 翻译国际化字符串
 translate({
-  output: './src/locale/',
+  localeDir: './src/locale/',
   langs: ['zh', 'en'],
   translation: {
     services: [
@@ -117,7 +117,7 @@ export default {
   exclude: ['**/test/**'],
   i18nTag: 'i18n',
   i18nImport: '@/utils/i18n',
-  output: './src/locale/',
+  localeDir: './src/locale/',
   langs: ['zh', 'en'],
   
   // 翻译配置
@@ -147,7 +147,7 @@ export default {
 | `i18nImport` | `string \| object` | `undefined` | i18n 函数导入配置 |
 | `ignoreComment` | `string` | `'i18n-ignore'` | 忽略注释标记 |
 | `ignoreAttrs` | `string[]` | `[]` | Vue/JSX 中忽略的属性 |
-| `output` | `string` | `'./src/locale/'` | 输出目录 |
+| `localeDir` | `string` | `'./src/locale/'` | 输出目录 |
 | `langs` | `string[]` | `['zh', 'en']` | 支持的语言列表 |
 | `fileMapping` | `string` | `'fileMapping'` | 文件映射配置 |
 | `placeholder` | `[string, string?]` | `['{', '}']` | 占位符配置 |
@@ -165,7 +165,7 @@ export default {
 | `retryDelay` | `number` | `1000` | 重试延迟（毫秒） |
 | `skipExisting` | `boolean` | `true` | 跳过已翻译的内容 |
 | `forceUpdate` | `boolean` | `false` | 强制更新已有翻译 |
-| `translateMapping` | `string` | `'translateMapping'` | 翻译记录文件名（保存在 output 目录中） |
+| `translateMapping` | `string` | `'translateMapping'` | 翻译记录文件名（保存在 localeDir 目录中） |
 
 ### i18nImport 配置
 

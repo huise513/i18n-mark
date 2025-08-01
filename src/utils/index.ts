@@ -1,7 +1,7 @@
 import { globSync } from "glob";
 import { FileMatchConfigType } from "../shared/types";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import { execSync } from "node:child_process";
 import micromatch from "micromatch";
 import { logger } from "../shared/logger";

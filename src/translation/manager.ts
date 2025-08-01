@@ -18,7 +18,7 @@ export class TranslationManager {
     this.validateConfig();
     this.initializeServices();
     this.recordManager = new TranslationRecordManager(
-      this.config.output,
+      this.config.localeDir,
       this.config.translation?.translateMapping || 'translateMapping'
     );
   }
@@ -106,7 +106,7 @@ export class TranslationManager {
    */
   private loadLanguageFiles(): Record<string, Record<string, string>> {
     const languageFiles: Record<string, Record<string, string>> = {};
-    const outputDir = resolvePath(this.config.output);
+    const outputDir = resolvePath(this.config.localeDir);
 
     for (const lang of this.config.langs) {
       const filePath = `${outputDir}/${lang}.json`;
@@ -191,7 +191,7 @@ export class TranslationManager {
     this.recordManager.save();
     
     // 同步到语言文件
-    this.recordManager.syncToLanguageFiles(this.config.output, this.config.langs);
+    this.recordManager.syncToLanguageFiles(this.config.localeDir, this.config.langs);
     
     logger.success(`✅ Translation completed. Total translated: ${totalTranslated} entries`);
     
@@ -344,7 +344,7 @@ export class TranslationManager {
    */
   forceRefreshLanguageFiles(): void {
     logger.info('Force refreshing all language files...');
-    const outputDir = this.config.output;
+    const outputDir = this.config.localeDir;
     const langs = this.config.langs;
     
     this.recordManager.forceRefreshLanguageFiles(outputDir, langs);

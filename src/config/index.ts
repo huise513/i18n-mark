@@ -9,22 +9,16 @@ import { logger, LogMode } from "../shared/logger";
  * 使用 include/exclude 模式进行文件匹配
  */
 export const DEFAULT_CONFIG: ConfigType = {
-  // 文件匹配配置
   include: ["src/**/*"],
   exclude: ["**/node_modules/**", "**/dist/**", "**/test/**", "**/tests/**"],
   staged: false,
-
-  // 功能配置
   i18nTag: "i18n",
   i18nImport: "",
   ignoreComment: "i18n-ignore",
-
-  // 提取配置
-  output: "./src/locale/",
+  localeDir: "./src/locale/",
   langs: ["zh", "en"],
   fileMapping: 'fileMapping',
   placeholder: ['{', '}'],
-
   log: LogMode.FILE,
 }
 
@@ -89,8 +83,8 @@ function resolveConfig(config: Partial<ConfigType>, requiredFields: ValidateConf
   logger.configure(logMode);
 
   // 解析路径
-  if (mergedConfig.output) {
-    mergedConfig.output = resolvePath(mergedConfig.output);
+  if (mergedConfig.localeDir) {
+    mergedConfig.localeDir = resolvePath(mergedConfig.localeDir);
   }
 
   return mergedConfig;
@@ -101,14 +95,14 @@ export function resolveMarkConfig(config: Partial<MarkConfigType>): ConfigType {
 }
 
 export function resolveExtractConfig(config: Partial<ExtractConfigType>): ConfigType {
-  return resolveConfig(config, ['i18nTag', 'output', 'langs', 'fileMapping', (resolveConfig) => {
+  return resolveConfig(config, ['i18nTag', 'localeDir', 'langs', 'fileMapping', (resolveConfig) => {
     const rs = Array.isArray(resolveConfig.placeholder) && resolveConfig.placeholder.length > 0
     return rs ? null : 'placeholder must be array and length > 0'
   }]);
 }
 
 export function resolveTranslateConfig(config: Partial<ConfigType>): ConfigType {
-  const resolvedConfig = resolveConfig(config, ['output', 'langs', (resolvedConfig) => {
+  const resolvedConfig = resolveConfig(config, ['localeDir', 'langs', (resolvedConfig) => {
     if (!resolvedConfig.translation) {
       return 'translation config is required for translate command';
     }

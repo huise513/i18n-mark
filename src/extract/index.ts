@@ -65,8 +65,8 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
     return
   }
   generateLocaleFiles(config);
-  const { output, langs, fileMapping } = config;
-  const absoluteOutpath = resolvePath(output);
+  const { localeDir, langs, fileMapping } = config;
+  const absoluteOutpath = resolvePath(localeDir);
   const groupFilePath = `${absoluteOutpath}/${fileMapping}.json`;
   const oldGroups: Record<string, string[]> = JSON.parse(getCodeByPath(groupFilePath));
   const groups = groupEntriesByKey(entries);
@@ -149,8 +149,8 @@ function detectI18NDifferences(
 
 
 export function generateLocaleFiles(config: ExtractConfigType) {
-  const { output, langs, fileMapping } = config;
-  const outpath = resolvePath(output);
+  const { localeDir, langs, fileMapping } = config;
+  const outpath = resolvePath(localeDir);
   if (!existFile(outpath)) {
     mkdirSync(outpath, { recursive: true });
   }
