@@ -119,11 +119,8 @@ export function resolveTranslateConfig(config: Partial<ConfigType>): ConfigType 
   if (resolvedConfig.translation) {
     resolvedConfig.translation = {
       batchSize: 10,
-      retryAttempts: 3,
-      retryDelay: 1000,
-      skipExisting: true,
-      forceUpdate: false,
-      forceRefresh: false,
+      update: false,
+      refresh: false,
       translateMapping: 'translateMapping',
       ...resolvedConfig.translation
     };

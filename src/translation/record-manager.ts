@@ -12,9 +12,9 @@ export class TranslationRecordManager {
   private recordFilePath: string;
   private record: TranslationRecord = {};
 
-  constructor(outputDir: string, fileName: string = 'translateMapping') {
+  constructor(outputDir: string, translateMapping: string = 'translateMapping') {
     const resolvedOutputDir = resolvePath(outputDir);
-    this.recordFilePath = `${resolvedOutputDir}/${fileName}.json`;
+    this.recordFilePath = `${resolvedOutputDir}/${translateMapping}.json`;
     this.load();
   }
 

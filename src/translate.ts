@@ -13,9 +13,9 @@ export async function translate(options: Partial<ConfigType>) {
     const manager = new TranslationManager(resolvedConfig);
     
     // 如果设置了强制刷新，则直接刷新翻译文件
-    if (resolvedConfig.translation?.forceRefresh) {
-      logger.info('Force refresh mode enabled');
-      manager.forceRefreshLanguageFiles();
+    if (resolvedConfig.translation?.refresh) {
+      logger.info('Refresh mode enabled');
+      manager.refreshLanguageFiles();
       return;
     }
     

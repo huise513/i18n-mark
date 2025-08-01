@@ -55,20 +55,15 @@ i18n-mark mark
 # 提取国际化字符串
 i18n-mark extract
 
-# 标记并提取（一步完成）
-i18n-mark
-
 # 翻译国际化字符串
 i18n-mark translate
+
+# 标记、提取、翻译（一步完成）
+i18n-mark
 
 # 使用配置文件
 i18n-mark -c i18n.config.js
 
-# 处理特定文件
-i18n-mark mark -i "src/**/*.{js,ts,vue}" -x "**/test/**"
-
-# 只处理 Git 暂存区文件
-i18n-mark -s
 ```
 
 ### 编程式使用
@@ -130,7 +125,6 @@ export default {
       }
     ],
     defaultService: 'baidu',
-    batchSize: 10,
     translateMapping: 'translateMapping'
   }
 }
@@ -159,12 +153,8 @@ export default {
 |------|------|--------|------|
 | `services` | `array` | `[]` | 翻译服务配置列表 |
 | `defaultService` | `string` | - | 默认翻译服务名称 |
-| `fallbackServices` | `string[]` | `[]` | 备用翻译服务列表 |
-| `batchSize` | `number` | `10` | 批量翻译大小 |
-| `retryAttempts` | `number` | `3` | 重试次数 |
-| `retryDelay` | `number` | `1000` | 重试延迟（毫秒） |
-| `skipExisting` | `boolean` | `true` | 跳过已翻译的内容 |
-| `forceUpdate` | `boolean` | `false` | 强制更新已有翻译 |
+| `update` | `boolean` | `false` | 强制更新已有翻译, 否则只更新缺失的翻译 |
+| `refresh` | `boolean` | `false` | 将translateMapping数据刷新到各个语言文件 |
 | `translateMapping` | `string` | `'translateMapping'` | 翻译记录文件名（保存在 localeDir 目录中） |
 
 ### i18nImport 配置
@@ -279,4 +269,4 @@ export default defineConfig({
 })
 ```
 
-> 📖 **详细文档**：[Vite 插件使用指南](https://github.com/huise513/i18n-mark/blob/main/docs/README.md)
+> 📖 **详细文档**：[Vite 插件使用指南](https://github.com/huise513/i18n-mark/blob/main/docs/README_VITE.md)

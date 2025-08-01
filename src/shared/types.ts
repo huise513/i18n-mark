@@ -148,22 +148,15 @@ export interface TranslationOptions {
   // 翻译服务配置
   services: TranslationServiceConfig[];
   defaultService: TranslationServiceName;
-  fallbackServices?: TranslationServiceName[];
 
   // 文件配置
   translateMapping?: string;  // 翻译记录文件路径，默认 '.i18n-translations.json'
-
-  // 翻译选项
-  batchSize?: number;  // 默认 10
-  retryAttempts?: number;  // 默认 3
-  retryDelay?: number;  // 默认 1000ms
-  skipExisting?: boolean;  // 默认 true
-  forceUpdate?: boolean;  // 默认 false
-  forceRefresh?: boolean;  // 强制刷新所有翻译文件
+  update?: boolean;  // 默认 false
+  refresh?: boolean;  // 强制刷新所有翻译文件
 
   // 批量导入选项
-  importFile?: string;  // Excel 或 JSON 文件路径
-  importFormat?: 'excel' | 'json';  // 导入格式
+  // importFile?: string;  // Excel 或 JSON 文件路径
+  // importFormat?: 'excel' | 'json';  // 导入格式
 }
 
 /**
