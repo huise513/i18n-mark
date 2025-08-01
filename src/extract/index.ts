@@ -4,7 +4,7 @@ import {
   I18nDiffReportType,
   I18nEntryType,
   KeyUsageMapType,
-} from "./types";
+} from "../shared/types";
 import {
   existFile,
   findEntryFilesPath,
@@ -12,15 +12,15 @@ import {
   resolvePath,
   toUnixPath,
   writeFileByCode,
-} from "./utils";
+} from "../utils";
 import { extractFromJsCode } from "./extract-js";
 import { extractFromVueCode } from "./extract-vue";
 import { mkdirSync } from "node:fs";
 import {
   resolveExtractConfig,
-} from "./config";
+} from "../config";
 import { relative } from "node:path";
-import { logger } from "./logger";
+import { logger } from "../shared/logger";
 
 export function extract(options: Partial<ExtractConfigType>) {
   const resolveConfig = resolveExtractConfig(options);

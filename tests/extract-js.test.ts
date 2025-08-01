@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { extractFromJsCode } from '../src/extract-js'
+import { extractFromJsCode } from '../src/extract/extract-js'
 import { DEFAULT_CONFIG } from '../src/config'
 
 describe('extract-js', () => {

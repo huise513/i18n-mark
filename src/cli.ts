@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { mark, extract, translate } from "./index";
-import { loadConfigFile, resolveExtractConfig, resolveMarkConfig, resolveTranslateConfig } from "./config";
-import { CliExtractConfigType, CliMarkConfigType, CliTranslateConfigType } from "./types";
+import { loadConfigFile } from "./config";
+import { CliExtractConfigType, CliMarkConfigType, CliTranslateConfigType } from "./shared/types";
 import packageJson from "../package.json";
 
 const version = packageJson.version;

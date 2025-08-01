@@ -1,17 +1,17 @@
-import { ConfigType } from './types'
+import { ConfigType } from './shared/types'
 import { generateVarName } from './utils'
 
 export { mark } from './mark'
 export { extract } from './extract'
 export { translate } from './translate'
-export { markJsCode } from './mark-js'
-export { markVueCode } from './mark-vue'
-export { extractFromJsCode } from './extract-js'
-export { extractFromVueCode } from './extract-vue'
+export { markJsCode } from './mark/mark-js'
+export { markVueCode } from './mark/mark-vue'
+export { extractFromJsCode } from './extract/extract-js'
+export { extractFromVueCode } from './extract/extract-vue'
 
-export { LogMode } from './logger'
-export type { MarkConfigType, ExtractConfigType, I18nImportConfig, TranslationOptions, TranslationServiceConfig } from './types'
-export { I18nImportType, TranslationServiceName } from './types'
+export { LogMode } from './shared/logger'
+export type { MarkConfigType, ExtractConfigType, I18nImportConfig, TranslationOptions, TranslationServiceConfig } from './shared/types'
+export { I18nImportType, TranslationServiceName } from './shared/types'
 
 export function defineConfig(config: Partial<ConfigType>) {
   return config

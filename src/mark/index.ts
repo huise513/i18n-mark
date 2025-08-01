@@ -1,12 +1,10 @@
 import { extname } from "node:path";
 import { markJsCode } from "./mark-js";
 import { markVueCode } from "./mark-vue";
-import { MarkCodeOptionType, MarkConfigType } from "./types";
-import {
-  resolveMarkConfig,
-} from "./config";
-import { findEntryFilesPath, getCodeByPath, writeFileByCode } from "./utils";
-import { logger } from "./logger";
+import { MarkCodeOptionType, MarkConfigType } from "../shared/types";
+import { resolveMarkConfig } from "../config";
+import { findEntryFilesPath, getCodeByPath, writeFileByCode } from "../utils";
+import { logger } from "../shared/logger";
 
 export function mark(config?: Partial<MarkConfigType>) {
   const resolveConfig = resolveMarkConfig(config);

@@ -2,7 +2,7 @@ import type { Plugin } from 'vite';
 import { Transformer } from './transform';
 import type { ResolvedOptions, ViteI18nMarkPluginOptions } from './types';
 import { resolveOptions } from './utils';
-import { logger } from '../logger';
+import { logger } from '../shared/logger';
 import { matchFile, toUnixPath } from '../utils';
 import { generateLocaleFiles } from '../extract';
 

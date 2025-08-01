@@ -1,8 +1,8 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { TranslationRecord } from "../types";
+import { TranslationRecord } from "../shared/types";
 import { resolvePath, writeFileByCode, getCodeByPath, existFile } from "../utils";
-import { logger } from "../logger";
+import { logger } from "../shared/logger";
 
 /**
  * 翻译记录管理器

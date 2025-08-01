@@ -1,7 +1,7 @@
-import { ConfigType, TranslationService, TranslationResult, TranslationRecord } from "../types";
+import { ConfigType, TranslationService, TranslationResult, TranslationRecord } from "../shared/types";
 import { TranslationServiceFactory } from "./factory";
 import { TranslationRecordManager } from "./record-manager";
-import { logger } from "../logger";
+import { logger } from "../shared/logger";
 import { getCodeByPath, existFile, resolvePath } from "../utils";
 
 /**

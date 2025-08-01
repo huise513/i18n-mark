@@ -1,8 +1,8 @@
 import { extname, isAbsolute } from "node:path";
-import { ConfigType, ExtractConfigType, MarkConfigType, ValidateConfigFieldType } from "./types";
-import { existFile, getCodeByPath, resolvePath } from "./utils";
+import { ConfigType, ExtractConfigType, MarkConfigType, ValidateConfigFieldType } from "../shared/types";
+import { existFile, getCodeByPath, resolvePath } from "../utils";
 import { pathToFileURL } from "node:url";
-import { logger, LogMode } from "./logger";
+import { logger, LogMode } from "../shared/logger";
 
 /**
  * 默认配置
@@ -85,7 +85,7 @@ function resolveConfig(config: Partial<ConfigType>, requiredFields: ValidateConf
 
   // 配置日志系统
   const logMode = mergedConfig.log === 'file' ? LogMode.FILE :
-    mergedConfig.log === 'code' ? LogMode.CODE : LogMode.NONE;
+    mergedConfig.log === 'line' ? LogMode.LINE : LogMode.NONE;
   logger.configure(logMode);
 
   // 解析路径

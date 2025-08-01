@@ -4,9 +4,9 @@ import {
   hasChinese,
   splitString,
   toSafeTemplateLiteral,
-} from "./utils";
-import { MarkCodeOptionType, I18nImportConfig, I18nImportType } from "./types";
-import { logger } from "./logger";
+} from "../utils";
+import { MarkCodeOptionType, I18nImportConfig, I18nImportType } from "../shared/types";
+import { logger } from "../shared/logger";
 
 /**
  * 规范化i18n导入配置

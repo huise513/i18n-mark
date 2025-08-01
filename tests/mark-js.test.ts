@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { markJsCode } from '../src/mark-js'
+import { markJsCode } from '../src/mark/mark-js'
 import { DEFAULT_CONFIG } from '../src/config'
-import { I18nImportType } from '../src/types'
+import { I18nImportType } from '../src/shared/types'
 
 describe('mark-js', () => {
   describe('markJsCode', () => {

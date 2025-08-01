@@ -1,5 +1,5 @@
-import { LogMode } from '../logger';
-import type { ExtractBaseType, MarkBaseType, FileMatchConfigType } from '../types';
+import { LogMode } from '../shared/logger';
+import type { ExtractBaseType, MarkBaseType, FileMatchConfigType } from '../shared/types';
 
 /**
  * Vite 插件基础配置类型

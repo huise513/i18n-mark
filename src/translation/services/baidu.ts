@@ -1,6 +1,6 @@
 import { BaseTranslationService } from "../base";
-import { TranslationResult, UsageLimit, TranslationServiceConfig, TranslationErrorType } from "../../types";
-import { logger } from "../../logger";
+import { TranslationResult, UsageLimit, TranslationServiceConfig, TranslationErrorType } from "../../shared/types";
+import { logger } from "../../shared/logger";
 
 /**
  * 百度翻译服务实现

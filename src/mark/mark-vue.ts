@@ -12,9 +12,9 @@ import {
     hasChinese,
     splitString,
     toSafeTemplateLiteral,
-} from "./utils";
+} from "../utils";
 import { markJsCode } from "./mark-js";
-import { MarkCodeOptionType } from "./types";
+import { MarkCodeOptionType } from "../shared/types";
 
 export function markVueCode(code: string, option: MarkCodeOptionType) {
     const result = parse(code);

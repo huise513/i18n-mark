@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { extractFromVueCode } from '../src/extract-vue'
+import { extractFromVueCode } from '../src/extract/extract-vue'
 import { DEFAULT_CONFIG } from '../src/config'
 
 describe('extract-vue', () => {

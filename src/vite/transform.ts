@@ -2,11 +2,11 @@ import type {
   ResolvedOptions,
   TransformResult,
 } from './types';
-import { markJsCode } from '../mark-js';
-import { markVueCode } from '../mark-vue';
+import { markJsCode } from '../mark/mark-js';
+import { markVueCode } from '../mark/mark-vue';
 import {  extractCode, writeExtractFile } from '../extract';
 import { extname } from 'node:path';
-import type { I18nEntryType } from '../types';
+import type { I18nEntryType } from '../shared/types';
 
 /**
  * 全局提取队列，用于收集所有并发的提取结果

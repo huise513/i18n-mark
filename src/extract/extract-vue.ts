@@ -3,10 +3,10 @@ import {
   NodeTypes,
   TemplateChildNode,
 } from "@vue/compiler-core";
-import { ExtractCodeOptionType, I18nEntryType } from "./types";
+import { ExtractCodeOptionType, I18nEntryType } from "../shared/types";
 import { parse } from "@vue/compiler-sfc";
 import { extractFromJsCode } from "./extract-js";
-import { logger } from "./logger";
+import { logger } from "../shared/logger";
 
 export function extractFromVueCode(code: string, config: ExtractCodeOptionType): I18nEntryType[] {
   const entries: I18nEntryType[] = [];

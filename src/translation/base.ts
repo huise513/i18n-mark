@@ -1,4 +1,4 @@
-import { TranslationService, TranslationResult, UsageLimit, TranslationError, TranslationErrorType } from "../types";
+import { TranslationService, TranslationResult, UsageLimit, TranslationError, TranslationErrorType } from "../shared/types";
 
 /**
  * 翻译服务抽象基类

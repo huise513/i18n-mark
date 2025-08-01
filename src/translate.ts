@@ -1,7 +1,7 @@
-import { ConfigType } from "./types";
+import { ConfigType } from "./shared/types";
 import { resolveTranslateConfig } from "./config";
 import { TranslationManager } from "./translation";
-import { logger } from "./logger";
+import { logger } from "./shared/logger";
 
 /**
  * 翻译功能主入口

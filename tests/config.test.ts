@@ -8,7 +8,7 @@ import {
   resolveMarkConfig,
   resolveExtractConfig
 } from '../src/config';
-import { I18nImportType } from '../src/types';
+import { I18nImportType } from '../src/shared/types';
 
 // Mock dependencies
 vi.mock('fs');
@@ -94,7 +94,7 @@ describe('Config', () => {
         i18nTag: 'i18n'
       });
       
-      expect(config.include).toEqual(['/resolved/src/**/*.{js,jsx,ts,tsx,vue}']);
+      expect(config.include).toEqual(['/resolved/src/**/*.{js,ts,jsx,tsx,mjs,vue}']);
       expect(config.exclude).toEqual([
         '/resolved/**/node_modules/**',
         '/resolved/**/dist/**',
@@ -158,7 +158,7 @@ describe('Config', () => {
         fileMapping: 'mapping'
       });
       
-      expect(config.include).toEqual(['/resolved/src/**/*.{js,jsx,ts,tsx,vue}']);
+      expect(config.include).toEqual(['/resolved/src/**/*.{js,ts,jsx,tsx,mjs,vue}']);
       expect(config.exclude).toEqual([
         '/resolved/**/node_modules/**',
         '/resolved/**/dist/**',
@@ -186,7 +186,7 @@ describe('Config', () => {
     it('应该验证placeholder配置', () => {
       const baseConfig = { i18nTag: 'i18n', output: './locales', langs: ['zh'], fileMapping: 'mapping' };
       
-      expect(() => resolveExtractConfig({ ...baseConfig, placeholder: [] }))
+      expect(() => resolveExtractConfig({ ...baseConfig, placeholder: [] as any }))
         .toThrow('Missing required config: placeholder must be array and length > 0');
       expect(() => resolveExtractConfig({ ...baseConfig, placeholder: undefined }))
         .toThrow('Missing required config: placeholder must be array and length > 0');
@@ -253,7 +253,7 @@ describe('Config', () => {
       expect(config).toHaveProperty('i18nTag');
       expect(config).toHaveProperty('output');
       expect(config).toHaveProperty('langs');
-      expect(config.include).toEqual(['src/**/*.{js,jsx,ts,tsx,vue}']);
+      expect(config.include).toEqual(['src/**/*']);
       expect(config.exclude).toEqual(['**/node_modules/**', '**/dist/**', '**/test/**', '**/tests/**']);
       expect(config.i18nTag).toBe('i18n');
       expect(config.output).toBe('./src/locale/');

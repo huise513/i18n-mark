@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { markVueCode } from '../src/mark-vue'
+import { markVueCode } from '../src/mark/mark-vue'
 import { DEFAULT_CONFIG } from '../src/config'
-import { I18nImportType } from '../src/types'
+import { I18nImportType } from '../src/shared/types'
 
 describe('mark-vue', () => {
 

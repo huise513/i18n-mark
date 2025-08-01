@@ -1,4 +1,4 @@
-import { TranslationService, TranslationServiceConfig, TranslationServiceName } from "../types";
+import { TranslationService, TranslationServiceConfig, TranslationServiceName } from "../shared/types";
 import { BaiduTranslateService } from "./services/baidu";
 import { TencentTranslateService } from "./services/tencent";
 

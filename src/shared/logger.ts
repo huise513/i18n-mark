@@ -1,7 +1,7 @@
 export enum LogMode {
     NONE = 'none',
     FILE = 'file',
-    CODE = 'code'
+    LINE = 'line'
 }
 
 const colors = {
@@ -63,32 +63,32 @@ class Logger {
     }
 
     fileNormal(label: string, filename: string): void {
-        if (this.mode === LogMode.FILE || this.mode === LogMode.CODE) {
+        if (this.mode === LogMode.FILE || this.mode === LogMode.LINE) {
             console.log(this.formatMessage(`${label}: ${colorize(filename, colors.magenta)}`));
         }
     }
 
 
     fileStart(filename: string): void {
-        if (this.mode === LogMode.FILE || this.mode === LogMode.CODE) {
+        if (this.mode === LogMode.FILE || this.mode === LogMode.LINE) {
             console.log(this.formatMessage(`Processing: ${colorize(filename, colors.magenta)}`));
         }
     }
 
     fileProcessed(filename: string): void {
-        if (this.mode === LogMode.FILE || this.mode === LogMode.CODE) {
+        if (this.mode === LogMode.FILE || this.mode === LogMode.LINE) {
             console.log(this.formatMessage(`Processed: ${colorize(filename, colors.magenta)}`));
         }
     }
 
     codeMatch(matchedText: string): void {
-        if (this.mode === LogMode.CODE) {
+        if (this.mode === LogMode.LINE) {
             console.log(this.formatMessage(`Found: ${colorize(`${matchedText}`, colors.darkBlue)}`));
         }
     }
 
      codeNormal(label:string, matchedText: string): void {
-        if (this.mode === LogMode.CODE) {
+        if (this.mode === LogMode.LINE) {
             console.log(this.formatMessage(`${label}: ${colorize(`${matchedText}`, colors.reset)}`));
         }
     }
