@@ -1,6 +1,6 @@
 {
 	"name": "i18n-mark",
-	"version": "0.4.2",
+	"version": "0.4.3",
 	"description": "Internationalization code mark and extract tool for JavaScript/TypeScript and Vue projects",
 	"keywords": [
 		"i18n",
