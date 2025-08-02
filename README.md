@@ -32,7 +32,7 @@ i18n`你好世界` -> { "你好世界": "你好世界" }
 - ⚙️ **配置灵活**：支持 CLI 参数、配置文件和编程式调用
 - 🎨 **自定义标记**：可自定义 i18n 函数名和导入路径
 - 📋 **Git 集成**：支持只处理 Git 暂存区文件
-- 🌐 **自动翻译**：支持百度、腾讯、阿里、有道等翻译服务
+- 🌐 **自动翻译**：支持百度/腾讯翻译服务
 - 📊 **智能管理**：翻译记录管理，避免重复翻译
 
 ## 📦 安装
@@ -145,8 +145,7 @@ export default {
 
 | 选项 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `services` | `array` | `[]` | 翻译服务配置列表 |
-| `defaultService` | `string` | - | 默认翻译服务名称 |
+| `service` | `object` | `undefined` | 翻译服务配置对象，包含 name（服务名称，支持 'baidu'、'tencent'）、apiKey（API密钥）、apiSecret（API密钥）等字段 |
 | `update` | `boolean` | `false` | 强制更新已有翻译, 否则只更新缺失的翻译 |
 | `refresh` | `boolean` | `false` | 将translateMapping数据刷新到各个语言文件 |
 | `translateMapping` | `string` | `'translateMapping'` | 翻译记录文件名（保存在 localeDir 目录中） |

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { markJsCode } from '../src/mark/mark-js'
 import { DEFAULT_CONFIG } from '../src/config'
 import { I18nImportType } from '../src/shared/types'

@@ -121,9 +121,32 @@ function commitAndTag(version: string) {
  */
 function pushToRemote() {
   console.log('🚀 推送到远程仓库...');
-  runCommand('git push');
-  runCommand('git push --tags');
-  console.log('✅ 推送完成');
+  
+  try {
+    // 获取当前分支名称
+    const currentBranch = runCommand('git branch --show-current', { silent: true })?.trim() || 'main';
+    console.log(`📍 当前分支: ${currentBranch}`);
+    
+    // 先推送代码提交
+    console.log('📤 推送代码提交...');
+    runCommand(`git push origin ${currentBranch}`);
+    
+    // 再推送标签
+    console.log('🏷️ 推送标签...');
+    runCommand('git push origin --tags');
+    
+    console.log('✅ 推送完成');
+  } catch (error) {
+    console.error('❌ 推送失败:', error);
+    console.log('💡 可能的解决方案:');
+    console.log('   1. 检查网络连接');
+    console.log('   2. 确认 GitHub 访问权限');
+    console.log('   3. 检查是否有权限推送到当前分支');
+    console.log('   4. 手动执行推送命令:');
+    console.log('      git push');
+    console.log('      git push --tags');
+    throw error;
+  }
 }
 
 /**

@@ -1,6 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 import { BaseTranslationService } from "../base";
 import { TranslationResult, UsageLimit, TranslationServiceConfig, TranslationErrorType, TranslationServiceName } from "../../shared/types";
+import { logger } from "@/shared/logger";
 
 /**
  * 腾讯翻译服务实现
@@ -15,7 +16,7 @@ export class TencentTranslateService extends BaseTranslationService {
 
   constructor(config: TranslationServiceConfig) {
     super(config);
-    
+
     if (!config.apiKey) {
       throw new Error('Tencent translation service requires apiKey (SecretId)');
     }
@@ -26,10 +27,8 @@ export class TencentTranslateService extends BaseTranslationService {
 
   async translate(text: string, from: string, to: string): Promise<TranslationResult> {
     const timestamp = Math.floor(Date.now() / 1000);
+    // 根据腾讯云 API 文档，Action、Version、Region 等通过请求头传递
     const payload = {
-      Action: 'TextTranslate',
-      Version: this.version,
-      Region: this.region,
       SourceText: text,
       Source: this.mapLanguageCode(from),
       Target: this.mapLanguageCode(to),
@@ -37,13 +36,13 @@ export class TencentTranslateService extends BaseTranslationService {
     };
 
     try {
-      const authorization = this.generateAuthorization(payload, timestamp);
-      
+      const authorization = this.generateAuthorization(payload, timestamp, 'TextTranslate');
+
       const response = await fetch(`https://${this.endpoint}`, {
         method: 'POST',
         headers: {
           'Authorization': authorization,
-          'Content-Type': 'application/json; charset=utf-8',
+          'Content-Type': 'application/json',
           'Host': this.endpoint,
           'X-TC-Action': 'TextTranslate',
           'X-TC-Timestamp': timestamp.toString(),
@@ -67,6 +66,132 @@ export class TencentTranslateService extends BaseTranslationService {
     }
   }
 
+  /**
+   * 腾讯翻译批量翻译实现
+   * 使用腾讯云 TextTranslateBatch API 进行真正的批量翻译
+   */
+  async batchTranslate(texts: string[], from: string, to: string): Promise<TranslationResult[]> {
+
+
+    // 腾讯云批量翻译有字符数限制，单次请求总长度需要低于6000字符
+    const maxCharsPerRequest = 5000; // 留一些余量
+    const results: TranslationResult[] = [];
+
+    // 将文本分批处理
+    const batches = this.splitTextsToBatches(texts, maxCharsPerRequest);
+
+    for (const batch of batches) {
+      try {
+        const batchResults = await this.translateBatch(batch, from, to);
+        results.push(...batchResults);
+        // 添加延迟以避免频率限制（5次/秒）
+        if (batches.length > 1) {
+          await this.delay(200); // 200ms 延迟
+        }
+      } catch (error) {
+        logger.error(`error ${error.message}`);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * 执行真正的批量翻译请求
+   */
+  private async translateBatch(texts: string[], from: string, to: string): Promise<TranslationResult[]> {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const payload = {
+      SourceTextList: texts,
+      Source: this.mapLanguageCode(from),
+      Target: this.mapLanguageCode(to),
+      ProjectId: 0
+    };
+
+    const authorization = this.generateAuthorization(payload, timestamp, 'TextTranslateBatch');
+
+    const response = await fetch(`https://${this.endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authorization,
+        'Content-Type': 'application/json',
+        'Host': this.endpoint,
+        'X-TC-Action': 'TextTranslateBatch',
+        'X-TC-Timestamp': timestamp.toString(),
+        'X-TC-Version': this.version,
+        'X-TC-Region': this.region
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.Response.Error) {
+      throw new Error(`Tencent API Error: ${data.Response.Error.Message}`);
+    }
+
+    const targetTextList = data.Response.TargetTextList || [];
+
+    return texts.map((originalText, index) => ({
+      originalText,
+      translatedText: targetTextList[index] || originalText,
+      confidence: 1.0,
+      service: this.name
+    }));
+  }
+
+  /**
+   * 将文本数组按字符数限制分批
+   */
+  private splitTextsToBatches(texts: string[], maxCharsPerBatch: number): string[][] {
+    const batches: string[][] = [];
+    let currentBatch: string[] = [];
+    let currentBatchChars = 0;
+
+    for (const text of texts) {
+      const textLength = text.length;
+
+      // 如果单个文本就超过限制，单独处理
+      if (textLength > maxCharsPerBatch) {
+        if (currentBatch.length > 0) {
+          batches.push(currentBatch);
+          currentBatch = [];
+          currentBatchChars = 0;
+        }
+        batches.push([text]);
+        continue;
+      }
+
+      // 如果加入当前文本会超过限制，先保存当前批次
+      if (currentBatchChars + textLength > maxCharsPerBatch && currentBatch.length > 0) {
+        batches.push(currentBatch);
+        currentBatch = [];
+        currentBatchChars = 0;
+      }
+
+      currentBatch.push(text);
+      currentBatchChars += textLength;
+    }
+
+    // 添加最后一个批次
+    if (currentBatch.length > 0) {
+      batches.push(currentBatch);
+    }
+
+    return batches;
+  }
+
+  /**
+   * 延迟函数
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   getSupportedLanguages(): string[] {
     return ['zh', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'ru', 'th', 'ar', 'pt', 'it'];
   }
@@ -81,18 +206,25 @@ export class TencentTranslateService extends BaseTranslationService {
 
   /**
    * 生成腾讯云 API 签名
+   * 参考文档: https://cloud.tencent.com/document/api/213/30654
    */
-  private generateAuthorization(payload: any, timestamp: number): string {
+  private generateAuthorization(payload: any, timestamp: number, action: string = 'TextTranslate'): string {
     const date = new Date(timestamp * 1000).toISOString().substr(0, 10);
-    
+
     // 步骤 1: 拼接规范请求串
     const httpRequestMethod = 'POST';
     const canonicalUri = '/';
     const canonicalQueryString = '';
-    const canonicalHeaders = `content-type:application/json; charset=utf-8\nhost:${this.endpoint}\n`;
+
+    // 按照字典序排列头部，并且必须包含参与签名的所有头部
+    const canonicalHeaders = [
+      `content-type:application/json`,
+      `host:${this.endpoint}`
+    ].join('\n') + '\n';
+
     const signedHeaders = 'content-type;host';
     const hashedRequestPayload = createHash('sha256').update(JSON.stringify(payload)).digest('hex');
-    
+
     const canonicalRequest = [
       httpRequestMethod,
       canonicalUri,
@@ -106,10 +238,10 @@ export class TencentTranslateService extends BaseTranslationService {
     const algorithm = 'TC3-HMAC-SHA256';
     const credentialScope = `${date}/${this.service}/tc3_request`;
     const hashedCanonicalRequest = createHash('sha256').update(canonicalRequest).digest('hex');
-    
+
     const stringToSign = [
       algorithm,
-      timestamp,
+      timestamp.toString(),
       credentialScope,
       hashedCanonicalRequest
     ].join('\n');
@@ -142,7 +274,7 @@ export class TencentTranslateService extends BaseTranslationService {
       'pt': 'pt',
       'it': 'it'
     };
-    
+
     return mapping[lang] || lang;
   }
 

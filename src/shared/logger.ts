@@ -29,29 +29,61 @@ class Logger {
         this.mode = mode;
     }
 
-    private formatMessage(message: string, color?: string): string {
+    /**
+     * 格式化消息，支持多个参数
+     * @param args - 要格式化的参数列表
+     * @param color - 可选的颜色
+     * @returns 格式化后的消息字符串
+     */
+    private formatMessage(args: string | any[], color?: string): string {
+        if (typeof args === 'string') {
+            args = [args];
+        }
+        const message = args.map(arg => 
+            typeof arg === 'string' ? arg : JSON.stringify(arg)
+        ).join(' ');
         const coloredMessage = color ? colorize(message, color) : message;
         return `${this.prefix} ${coloredMessage}`;
     }
 
-    info(message: string): void {
-        console.log(this.formatMessage(message, colors.blue));
+    /**
+     * 输出信息日志，支持多个参数
+     * @param args - 要输出的参数列表
+     */
+    info(...args: any[]): void {
+        console.log(this.formatMessage(args, colors.blue));
     }
 
-    debug(message: string): void {
-        console.debug(this.formatMessage(message, colors.blue));
+    /**
+     * 输出调试日志，支持多个参数
+     * @param args - 要输出的参数列表
+     */
+    debug(...args: any[]): void {
+        console.debug(this.formatMessage(args, colors.blue));
     }
 
-    error(message: string): void {
-        console.error(this.formatMessage(message, colors.red));
+    /**
+     * 输出错误日志，支持多个参数
+     * @param args - 要输出的参数列表
+     */
+    error(...args: any[]): void {
+        console.error(this.formatMessage(args, colors.red));
     }
 
-    warn(message: string): void {
-        console.warn(this.formatMessage(message, colors.yellow));
+    /**
+     * 输出警告日志，支持多个参数
+     * @param args - 要输出的参数列表
+     */
+    warn(...args: any[]): void {
+        console.warn(this.formatMessage(args, colors.yellow));
     }
 
-    success(message: string): void {
-        console.log(this.formatMessage(message, colors.green));
+    /**
+     * 输出成功日志，支持多个参数
+     * @param args - 要输出的参数列表
+     */
+    success(...args: any[]): void {
+        console.log(this.formatMessage(args, colors.green));
     }
 
     file(message: string): void {

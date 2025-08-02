@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as fs from 'fs';
 import * as path from 'path';
-import { pathToFileURL } from 'url';
 import { resolvePath, existFile, getCodeByPath } from '../src/utils';
 import {
   loadConfigFile,
@@ -20,9 +18,7 @@ vi.mock('../src/utils', () => ({
   getCodeByPath: vi.fn()
 }));
 
-const mockFs = vi.mocked(fs);
 const mockPath = vi.mocked(path);
-const mockPathToFileURL = vi.mocked(pathToFileURL);
 const mockResolvePath = vi.mocked(resolvePath);
 const mockExistFile = vi.mocked(existFile);
 const mockGetCodeByPath = vi.mocked(getCodeByPath);
