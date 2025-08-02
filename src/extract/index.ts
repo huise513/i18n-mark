@@ -60,6 +60,13 @@ export function extractCode(code: string, config: ExtractBaseType, filePath?: st
   return list
 }
 
+/**
+ * 写入提取文件
+ * @param entries 提取的国际化数据
+ * @param config 提取配置
+ * @param autoRemoveKey 是否自动移除旧的键
+ * @returns 有实际写入的键
+ */
 export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseType, autoRemoveKey = true): string[] {
   if (!entries.length) {
     return []
@@ -82,6 +89,7 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
     });
   }
   writeFileByCode(groupFilePath, JSON.stringify(groups, null, 2));
+  const changedKeys = new Set<string>();
   langs.forEach((lang) => {
     const filePath = `${absoluteOutpath}/${lang}.json`;
     const code = getCodeByPath(filePath);
@@ -93,6 +101,7 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
       }
       data[v.key] = v.text;
       hasChanged = true;
+      changedKeys.add(v.key);
     });
     if (autoRemoveKey) {
       for (const key in diff.removedKeys) {
@@ -104,10 +113,9 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
       writeFileByCode(filePath, JSON.stringify(data, null, 2));
     }
   });
-  const addKeys = Object.keys(diff.addedKeys)
-  logger.line(`Extract Add Keys：${addKeys.length}`)
+  logger.line(`Extract Add Keys：${Object.keys(diff.addedKeys).length}`)
   logger.line(`Extract Remove Keys：${Object.keys(diff.removedKeys).length}`)
-  return addKeys
+  return [...changedKeys]
 }
 
 function groupEntriesByKey(entries: I18nEntryType[]): Record<string, string[]> {

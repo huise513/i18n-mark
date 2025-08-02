@@ -1,7 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
 import { BaseTranslationService } from "../base";
 import { TranslationResult, UsageLimit, TranslationServiceConfig, TranslationErrorType, TranslationServiceName } from "../../shared/types";
-import { logger } from "@/shared/logger";
+import { logger } from "../../shared/logger";
 
 /**
  * 腾讯翻译服务实现
