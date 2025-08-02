@@ -3,7 +3,7 @@ import { generateVarName } from './utils'
 
 export { mark } from './mark'
 export { extract } from './extract'
-export { translate } from './translate'
+export { translate, translateKeys } from './translate'
 export { markJsCode } from './mark/mark-js'
 export { markVueCode } from './mark/mark-vue'
 export { extractFromJsCode } from './extract/extract-js'

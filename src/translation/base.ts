@@ -1,14 +1,14 @@
-import { TranslationService, TranslationResult, UsageLimit, TranslationError, TranslationErrorType } from "../shared/types";
+import { TranslationService, TranslationResult, UsageLimit, TranslationError, TranslationErrorType, TranslationServiceName, TranslationServiceNameType, TranslationServiceConfig } from "../shared/types";
 
 /**
  * 翻译服务抽象基类
  * 提供通用的错误处理和重试机制
  */
 export abstract class BaseTranslationService implements TranslationService {
-  abstract name: string;
-  protected config: any;
+  abstract name: TranslationServiceNameType;
+  protected config: TranslationServiceConfig;
 
-  constructor(config: any) {
+  constructor(config: TranslationServiceConfig) {
     this.config = config;
   }
 

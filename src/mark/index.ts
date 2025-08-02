@@ -40,9 +40,9 @@ export function markCode(code: string, option: MarkCodeOptionType, filePath: str
     newCode = markVueCode(code, option);
   }
   if (newCode) {
-    logger.fileProcessed(filePath);
+    logger.file(`Mark Processed ${filePath}`)
   } else {
-    logger.fileNormal('Process Skip', filePath)
+    logger.file(`Mark Skip ${filePath}`)
   }
   return newCode
 }

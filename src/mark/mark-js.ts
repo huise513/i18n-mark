@@ -168,7 +168,7 @@ export function markJsCode(
             end,
             content: `${i18nTag}${escapedContent}`,
           });
-          logger.codeMatch(path.node.value);
+          logger.line(`[Extract] Match: ${path.node.value}`)
           hasChange = true;
         }
       },
@@ -209,7 +209,7 @@ export function markJsCode(
             end,
             content: `${i18nTag}${templateContent}`,
           });
-          logger.codeMatch(templateContent);
+          logger.line(`[Extract] Match: ${templateContent}`)
           hasChange = true;
         }
       },
@@ -226,7 +226,7 @@ export function markJsCode(
             end,
             content: `${leading}{${i18nTag}${escapedContent}}${trailing}`,
           });
-          logger.codeMatch(content);
+          logger.line(`[Extract] Match: ${content}`)
           hasChange = true;
         }
       },
@@ -255,7 +255,7 @@ export function markJsCode(
             end: valueNode.end,
             content: `{${i18nTag}${escapedContent}}`,
           });
-          logger.codeMatch(valueNode.value);
+          logger.line(`[Extract] Match: ${valueNode.value}`)
           hasChange = true;
         }
 
@@ -291,7 +291,7 @@ export function markJsCode(
               end,
               content: `${i18nTag}${templateContent}`,
             });
-            logger.codeMatch(templateContent);
+            logger.line(`[Extract] Match: ${templateContent}`)
             hasChange = true;
           }
         }

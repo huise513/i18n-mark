@@ -1,11 +1,12 @@
 import type { ResolvedOptions, ViteI18nMarkPluginOptions } from './types';
-import { resolveExtractConfig } from '../config';
+import { resolveConfig, resolveExtractConfig } from '../config';
 
 /**
  * 默认插件配置
  */
 const DEFAULT_PLUGIN_OPTIONS: ViteI18nMarkPluginOptions = {
   enabled: true,
+  isProduction: false
 };
 
 /**
@@ -14,7 +15,7 @@ const DEFAULT_PLUGIN_OPTIONS: ViteI18nMarkPluginOptions = {
  * @returns 解析后的完整配置
  */
 export function resolveOptions(options?: ViteI18nMarkPluginOptions): ResolvedOptions {
-  const resolved = resolveExtractConfig({
+  const resolved = resolveConfig({
     ...DEFAULT_PLUGIN_OPTIONS,
     ...options,
   }) as ResolvedOptions

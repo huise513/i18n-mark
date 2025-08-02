@@ -35,15 +35,11 @@ class Logger {
     }
 
     info(message: string): void {
-        if (this.mode !== LogMode.NONE) {
-            console.log(this.formatMessage(message, colors.blue));
-        }
+        console.log(this.formatMessage(message, colors.blue));
     }
 
     debug(message: string): void {
-        if (this.mode !== LogMode.NONE) {
-            console.debug(this.formatMessage(message, colors.blue));
-        }
+        console.debug(this.formatMessage(message, colors.blue));
     }
 
     error(message: string): void {
@@ -51,45 +47,22 @@ class Logger {
     }
 
     warn(message: string): void {
-        if (this.mode !== LogMode.NONE) {
-            console.warn(this.formatMessage(message, colors.yellow));
-        }
+        console.warn(this.formatMessage(message, colors.yellow));
     }
 
     success(message: string): void {
-        if (this.mode !== LogMode.NONE) {
-            console.log(this.formatMessage(message, colors.green));
-        }
+        console.log(this.formatMessage(message, colors.green));
     }
 
-    fileNormal(label: string, filename: string): void {
+    file(message: string): void {
         if (this.mode === LogMode.FILE || this.mode === LogMode.LINE) {
-            console.log(this.formatMessage(`${label}: ${colorize(filename, colors.magenta)}`));
+            console.log(this.formatMessage(`${colorize(message, colors.magenta)}`));
         }
     }
 
-
-    fileStart(filename: string): void {
-        if (this.mode === LogMode.FILE || this.mode === LogMode.LINE) {
-            console.log(this.formatMessage(`Processing: ${colorize(filename, colors.magenta)}`));
-        }
-    }
-
-    fileProcessed(filename: string): void {
-        if (this.mode === LogMode.FILE || this.mode === LogMode.LINE) {
-            console.log(this.formatMessage(`Processed: ${colorize(filename, colors.magenta)}`));
-        }
-    }
-
-    codeMatch(matchedText: string): void {
+    line(matchedText: string): void {
         if (this.mode === LogMode.LINE) {
-            console.log(this.formatMessage(`Found: ${colorize(`${matchedText}`, colors.darkBlue)}`));
-        }
-    }
-
-     codeNormal(label:string, matchedText: string): void {
-        if (this.mode === LogMode.LINE) {
-            console.log(this.formatMessage(`${label}: ${colorize(`${matchedText}`, colors.reset)}`));
+            console.log(this.formatMessage(`${colorize(matchedText, colors.darkBlue)}`));
         }
     }
 }

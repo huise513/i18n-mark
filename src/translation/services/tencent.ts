@@ -1,13 +1,13 @@
 import { createHash, createHmac } from "node:crypto";
 import { BaseTranslationService } from "../base";
-import { TranslationResult, UsageLimit, TranslationServiceConfig, TranslationErrorType } from "../../shared/types";
+import { TranslationResult, UsageLimit, TranslationServiceConfig, TranslationErrorType, TranslationServiceName } from "../../shared/types";
 
 /**
  * 腾讯翻译服务实现
  * API 文档: https://cloud.tencent.com/document/product/551/15619
  */
 export class TencentTranslateService extends BaseTranslationService {
-  name = 'tencent';
+  name = TranslationServiceName.TENCENT;
   private readonly endpoint = 'tmt.tencentcloudapi.com';
   private readonly service = 'tmt';
   private readonly version = '2018-03-21';

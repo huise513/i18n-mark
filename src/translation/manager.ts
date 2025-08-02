@@ -1,8 +1,8 @@
-import { ConfigType, TranslationService, TranslationResult, TranslationRecord } from "../shared/types";
+import { ConfigType, TranslationService, TranslationResult, TranslationRecord, TranslateConfigType } from "../shared/types";
 import { TranslationServiceFactory } from "./factory";
 import { TranslationRecordManager } from "./record-manager";
 import { logger } from "../shared/logger";
-import { getCodeByPath, existFile, resolvePath } from "../utils";
+import { getCodeByPath, existFile, resolvePath, delay } from "../utils";
 
 /**
  * 翻译管理器
@@ -11,9 +11,9 @@ import { getCodeByPath, existFile, resolvePath } from "../utils";
 export class TranslationManager {
   private services: Map<string, TranslationService> = new Map();
   private recordManager: TranslationRecordManager;
-  private config: ConfigType;
+  private config: TranslateConfigType;
 
-  constructor(config: ConfigType) {
+  constructor(config: TranslateConfigType) {
     this.config = config;
     this.validateConfig();
     this.initializeServices();
@@ -31,18 +31,12 @@ export class TranslationManager {
       throw new Error('Translation configuration is required');
     }
 
-    if (!this.config.translation.services || this.config.translation.services.length === 0) {
-      throw new Error('At least one translation service must be configured');
+    if (!this.config.translation.service) {
+      throw new Error('Translation service must be configured');
     }
 
-    if (!this.config.translation.defaultService) {
-      throw new Error('Default translation service must be specified');
-    }
-
-    // 验证默认服务是否在服务列表中
-    const serviceNames = this.config.translation.services.map(s => s.name);
-    if (!serviceNames.includes(this.config.translation.defaultService)) {
-      throw new Error(`Default service '${this.config.translation.defaultService}' not found in services list`);
+    if (!this.config.translation.service.name) {
+      throw new Error('Translation service name must be specified');
     }
   }
 
@@ -50,18 +44,13 @@ export class TranslationManager {
    * 初始化翻译服务
    */
   private initializeServices(): void {
-    for (const serviceConfig of this.config.translation!.services) {
-      try {
-        const service = TranslationServiceFactory.create(serviceConfig);
-        this.services.set(serviceConfig.name, service);
-        logger.info(`Initialized translation service: ${serviceConfig.name}`);
-      } catch (error) {
-        logger.error(`Failed to initialize service ${serviceConfig.name}: ${error.message}`);
-      }
-    }
-
-    if (this.services.size === 0) {
-      throw new Error('No translation services were successfully initialized');
+    const serviceConfig = this.config.translation!.service;
+    try {
+      const service = TranslationServiceFactory.create(serviceConfig);
+      this.services.set(serviceConfig.name, service);
+      logger.file(`Initialized translation service: ${serviceConfig.name}`);
+    } catch (error) {
+      throw new Error(`Translation service initialization failed: ${error.message}`);
     }
   }
 
@@ -69,7 +58,7 @@ export class TranslationManager {
    * 获取翻译服务
    */
   private getService(serviceName?: string): TranslationService {
-    const name = serviceName || this.config.translation!.defaultService;
+    const name = serviceName || this.config.translation!.service.name;
     const service = this.services.get(name);
 
     if (!service) {
@@ -121,6 +110,96 @@ export class TranslationManager {
   }
 
   /**
+   * 执行核心翻译逻辑
+   * @param keysToTranslate 需要翻译的键数组
+   * @param sourceTexts 源文本映射
+   * @param sourceLang 源语言
+   * @param targetLanguages 目标语言数组
+   * @returns 翻译的总数量
+   */
+  private async executeTranslation(
+    keysToTranslate: string[],
+    sourceTexts: Record<string, string>,
+    sourceLang: string,
+    targetLanguages: string[]
+  ): Promise<number> {
+    let totalTranslated = 0;
+
+    // 翻译到各目标语言
+    for (const targetLang of targetLanguages) {
+      if (targetLang === sourceLang) {
+        continue; // 跳过源语言
+      }
+
+      logger.line(`Translating ${keysToTranslate.length} entries to ${targetLang}`);
+      
+      // 过滤出需要翻译的 key（排除已存在且不需要更新的）
+      const filteredKeys = this.recordManager.getKeysToTranslate(
+        keysToTranslate,
+        targetLang,
+        this.config.translation?.update || false
+      );
+
+      if (filteredKeys.length === 0) {
+        logger.line(`No new translations needed for ${targetLang}`);
+        continue;
+      }
+
+      const translatedCount = await this.batchTranslate(
+        filteredKeys,
+        sourceTexts,
+        sourceLang,
+        targetLang
+      );
+
+      totalTranslated += translatedCount;
+      logger.line(`Translated ${translatedCount} entries to ${targetLang}`);
+    }
+
+    // 保存翻译记录
+    this.recordManager.save();
+
+    // 同步到语言文件
+    this.recordManager.syncToLanguageFiles(this.config.localeDir, this.config.langs);
+
+    return totalTranslated;
+  }
+
+  /**
+   * 增量翻译指定的 key 和 text
+   * @param entries 需要翻译的条目数组，每个条目包含 key 和 text
+   */
+  async translateKeys(keys: string[]): Promise<void> {
+    if (!keys || keys.length === 0) {
+      logger.warn('No keys to translate');
+      return;
+    }
+
+    logger.info(`Starting incremental translation for ${keys.length} keys`); 
+    const sourceLang = 'zh'; // 固定使用中文作为源语言
+    const targetLanguages = this.config.langs || [];
+
+    // 构建源文本映射
+    const sourceTexts: Record<string, string> = {};
+    const keysToTranslate: string[] = [];
+    
+    for (const key of keys) {
+      sourceTexts[key] = key;
+      keysToTranslate.push(key);
+    }
+
+    // 初始化源语言翻译记录
+    for (const key of keysToTranslate) {
+      this.recordManager.addTranslation(key, sourceLang, sourceTexts[key]);
+    }
+
+    // 执行核心翻译逻辑
+    await this.executeTranslation(keysToTranslate, sourceTexts, sourceLang, targetLanguages);
+
+    logger.info('Incremental translation completed');
+  }
+
+  /**
    * 执行翻译项目
    */
   async translateProject(): Promise<void> {
@@ -140,36 +219,26 @@ export class TranslationManager {
     this.recordManager.initializeSourceTranslations(sourceTexts, sourceLang);
 
     const targetLangs = this.config.langs.filter(lang => lang !== sourceLang);
-    let totalTranslated = 0;
+    const allKeysToTranslate: string[] = [];
 
+    // 收集所有需要翻译的 key
     for (const targetLang of targetLangs) {
-      logger.info(`Translating to ${targetLang}...`);
-
       const keysToTranslate = this.findKeysToTranslate(languageFiles, targetLang);
-
-      if (keysToTranslate.length === 0) {
-        logger.info(`No keys to translate for ${targetLang}`);
-        continue;
-      }
-
-      logger.info(`Found ${keysToTranslate.length} keys to translate for ${targetLang}`);
-
-      const translatedCount = await this.batchTranslate(
-        keysToTranslate,
-        languageFiles[sourceLang],
-        sourceLang,
-        targetLang
-      );
-
-      totalTranslated += translatedCount;
-      logger.info(`Translated ${translatedCount} keys for ${targetLang}`);
+      allKeysToTranslate.push(...keysToTranslate);
     }
 
-    // 保存翻译记录
-    this.recordManager.save();
+    // 去重
+    const uniqueKeys = [...new Set(allKeysToTranslate)];
 
-    // 同步到语言文件
-    this.recordManager.syncToLanguageFiles(this.config.localeDir, this.config.langs);
+    if (uniqueKeys.length === 0) {
+      logger.info('No keys to translate');
+      return;
+    }
+
+    logger.file(`Found ${uniqueKeys.length} unique keys to translate`);
+
+    // 执行核心翻译逻辑
+    const totalTranslated = await this.executeTranslation(uniqueKeys, sourceTexts, sourceLang, targetLangs);
 
     logger.success(`✅ Translation completed. Total translated: ${totalTranslated} entries`);
 
@@ -186,13 +255,13 @@ export class TranslationManager {
     sourceLang: string,
     targetLang: string
   ): Promise<number> {
-    const batchSize = this.config.translation?.batchSize || 10;
+    const batchSize = 10;
     const batches = this.createBatches(keys, batchSize);
     let translatedCount = 0;
 
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
-      logger.fileStart(`Processing batch ${i + 1}/${batches.length} (${batch.length} items)`);
+      logger.file(`Processing batch ${i + 1}/${batches.length} (${batch.length} items)`);
 
       const batchTexts = batch.map(key => sourceTexts[key]);
       const batchResults = await this.translateBatch(batchTexts, sourceLang, targetLang);
@@ -210,8 +279,7 @@ export class TranslationManager {
 
       // 添加延迟以避免频率限制
       if (i < batches.length - 1) {
-        const delay = 1000;
-        await this.delay(delay);
+        await delay(1000);
       }
     }
 
@@ -230,7 +298,7 @@ export class TranslationManager {
     const service = this.getService(serviceName);
     try {
       const results = await service.batchTranslate(texts, sourceLang, targetLang);
-      logger.info(`Translation batch end: ${results.length}个 from ${sourceLang} to ${targetLang} using ${service.name}`);
+      logger.line(`Translation batch end: ${results.length}个 from ${sourceLang} to ${targetLang} using ${service.name}`);
       return results;
     } catch (error) {
       logger.warn(`Translation  failed: ${error.message}`);
@@ -257,12 +325,6 @@ export class TranslationManager {
     return batches;
   }
 
-  /**
-   * 延迟函数
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 
   /**
    * 显示翻译统计
@@ -270,13 +332,13 @@ export class TranslationManager {
   private showTranslationStats(): void {
     const stats = this.recordManager.getTranslationStats(this.config.langs);
 
-    logger.info('\n📊 Translation Statistics:');
-    logger.info(`Total keys: ${stats.totalKeys}`);
+    logger.file('\n📊 Translation Statistics:');
+    logger.file(`Total keys: ${stats.totalKeys}`);
 
     for (const lang of this.config.langs) {
       const translated = stats.translatedKeys[lang] || 0;
       const rate = Math.round((stats.completionRate[lang] || 0) * 100);
-      logger.info(`${lang}: ${translated}/${stats.totalKeys} (${rate}%)`);
+      logger.line(`${lang}: ${translated}/${stats.totalKeys} (${rate}%)`);
     }
   }
 
@@ -299,11 +361,11 @@ export class TranslationManager {
    * 根据translateMapping中的数据重新生成所有语言文件
    */
   refreshLanguageFiles(): void {
-    logger.info('Force refreshing all language files...');
+    logger.file('Force refreshing all language files...');
     const outputDir = this.config.localeDir;
     const langs = this.config.langs;
 
     this.recordManager.forceRefreshLanguageFiles(outputDir, langs);
-    logger.info('Force refresh completed.');
+    logger.file('Force refresh completed.');
   }
 }

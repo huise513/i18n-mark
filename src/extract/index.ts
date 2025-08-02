@@ -33,7 +33,7 @@ export function extractFiles(
   config: ExtractConfigType
 ) {
   const entries: I18nEntryType[] = [];
-  logger.info(`Found ${filePaths.length} files to extract`);
+  logger.file(`Found ${filePaths.length} files to extract`);
   filePaths.forEach((filePath) => {
     const code = getCodeByPath(filePath);
     const list = extractCode(code, config, filePath);
@@ -53,16 +53,16 @@ export function extractCode(code: string, config: ExtractBaseType, filePath?: st
   const list = fn(code, config);
   if (list.length) {
     list.forEach((v) => (v.filePath = relative(process.cwd(), filePath)));
-    logger.fileProcessed(filePath);
+    logger.file(`Extract Processed ${filePath}`)
   } else {
-    logger.fileNormal('Extract Skip', filePath)
+    logger.file(`Extract Skip ${filePath}`)
   }
   return list
 }
 
-export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseType, autoRemoveKey = true) {
+export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseType, autoRemoveKey = true): string[] {
   if (!entries.length) {
-    return
+    return []
   }
   generateLocaleFiles(config);
   const { localeDir, langs, fileMapping } = config;
@@ -104,8 +104,10 @@ export function writeExtractFile(entries: I18nEntryType[], config: ExtractBaseTy
       writeFileByCode(filePath, JSON.stringify(data, null, 2));
     }
   });
-  logger.codeNormal('Extract Add Keys', `${Object.keys(diff.addedKeys).length}`)
-  logger.codeNormal('Extract Remove Keys', `${Object.keys(diff.removedKeys).length}`)
+  const addKeys = Object.keys(diff.addedKeys)
+  logger.line(`Extract Add Keys：${addKeys.length}`)
+  logger.line(`Extract Remove Keys：${Object.keys(diff.removedKeys).length}`)
+  return addKeys
 }
 
 function groupEntriesByKey(entries: I18nEntryType[]): Record<string, string[]> {

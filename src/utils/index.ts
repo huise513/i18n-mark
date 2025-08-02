@@ -143,3 +143,7 @@ export function matchFile(filePath: string, patterns: string[]) {
 export function getSupportedFiles(fileList: string[]) {
   return fileList.filter(f=> SUPPORTED_EXTENSIONS.includes(f.split('.').pop()))
 }
+
+export function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

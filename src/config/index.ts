@@ -28,7 +28,7 @@ export const DEFAULT_CONFIG: ConfigType = {
 export const SUPPORTED_EXTENSIONS = ['js', 'ts', 'jsx', 'tsx', 'mjs', 'vue'];
 
 // 通用配置验证函数
-function validateRequiredFields(config: any, requiredFields: ValidateConfigFieldType[]): void {
+function validateRequiredFields(config: any, requiredFields: ValidateConfigFieldType[] = []): void {
   for (const field of requiredFields) {
     if (typeof field === 'string') {
       if (!config[field]) {
@@ -64,7 +64,7 @@ function resolveFilePatterns(config: Partial<ConfigType>): { include: string[]; 
 }
 
 // 通用配置解析函数
-function resolveConfig(config: Partial<ConfigType>, requiredFields: ValidateConfigFieldType[]): ConfigType {
+export function resolveConfig(config: Partial<ConfigType>, requiredFields?: ValidateConfigFieldType[]): ConfigType {
   const mergedConfig = {
     ...DEFAULT_CONFIG,
     ...config
@@ -106,11 +106,11 @@ export function resolveTranslateConfig(config: Partial<ConfigType>): ConfigType 
     if (!resolvedConfig.translation) {
       return 'translation config is required for translate command';
     }
-    if (!resolvedConfig.translation.services || resolvedConfig.translation.services.length === 0) {
-      return 'translation.services must be configured with at least one service';
+    if (!resolvedConfig.translation.service) {
+      return 'translation.service must be configured';
     }
-    if (!resolvedConfig.translation.defaultService) {
-      return 'translation.defaultService must be specified';
+    if (!resolvedConfig.translation.service.name) {
+      return 'translation.service.name must be specified';
     }
     return null;
   }]);
@@ -118,7 +118,6 @@ export function resolveTranslateConfig(config: Partial<ConfigType>): ConfigType 
   // 设置翻译配置的默认值
   if (resolvedConfig.translation) {
     resolvedConfig.translation = {
-      batchSize: 10,
       update: false,
       refresh: false,
       translateMapping: 'translateMapping',

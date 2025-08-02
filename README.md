@@ -90,14 +90,11 @@ translate({
   localeDir: './src/locale/',
   langs: ['zh', 'en'],
   translation: {
-    services: [
-      {
-        name: 'baidu',
-        apiKey: 'your-api-key',
-        apiSecret: 'your-api-secret'
-      }
-    ],
-    defaultService: 'baidu'
+    service: {
+      name: 'baidu',
+      apiKey: 'your-api-key',
+      apiSecret: 'your-api-secret'
+    }
   }
 })
 ```
@@ -117,14 +114,11 @@ export default {
   
   // 翻译配置
   translation: {
-    services: [
-      {
-        name: 'baidu',
-        apiKey: 'your-baidu-api-key',
-        apiSecret: 'your-baidu-api-secret'
-      }
-    ],
-    defaultService: 'baidu',
+    service: {
+      name: 'baidu',
+      apiKey: 'your-baidu-api-key',
+      apiSecret: 'your-baidu-api-secret'
+    },
     translateMapping: 'translateMapping'
   }
 }
@@ -175,41 +169,47 @@ i18nImport: {
 
 ### 翻译服务配置
 
+**服务名称支持**：支持枚举常量和字符串两种方式，提供灵活性和类型安全：
+
+```javascript
+import { TranslationServiceName } from 'i18n-mark';
+
+// ✅ 方式1：使用枚举常量（推荐，有 IDE 自动补全）
+translation: {
+  service: {
+    name: TranslationServiceName.BAIDU,  // 'baidu'
+    apiKey: 'your-api-key',
+    apiSecret: 'your-api-secret'
+  }
+}
+
+// ✅ 方式2：直接使用字符串（简洁）
+translation: {
+  service: {
+    name: 'baidu',  // 等效于上面的枚举常量
+    apiKey: 'your-api-key',
+    apiSecret: 'your-api-secret'
+  }
+}
+
+// ✅ 方式3：自定义服务名称
+translation: {
+  service: {
+    name: 'my-custom-service',  // 支持任意字符串
+    apiKey: 'your-api-key',
+    apiSecret: 'your-api-secret'
+  }
+}
+
+
 支持的翻译服务：
 
 #### 百度翻译
 ```javascript
 {
-  name: 'baidu',
+  name: 'BAIDU',
   apiKey: 'your-app-id',
   apiSecret: 'your-secret-key'
-}
-```
-
-#### 腾讯翻译
-```javascript
-{
-  name: 'tencent',
-  apiKey: 'your-secret-id',
-  apiSecret: 'your-secret-key'
-}
-```
-
-#### 阿里翻译
-```javascript
-{
-  name: 'alibaba',
-  apiKey: 'your-access-key-id',
-  apiSecret: 'your-access-key-secret'
-}
-```
-
-#### 有道翻译
-```javascript
-{
-  name: 'youdao',
-  apiKey: 'your-app-key',
-  apiSecret: 'your-app-secret'
 }
 ```
 

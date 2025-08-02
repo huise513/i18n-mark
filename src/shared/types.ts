@@ -84,21 +84,26 @@ export type ValidateConfigFieldType = (string | ((config: ConfigType) => string 
 // ==================== 翻译功能相关类型定义 ====================
 
 /**
- * 翻译服务名称枚举
+ * 翻译服务名称常量
+ * 提供枚举式的使用体验，同时支持字符串类型
  */
-export enum TranslationServiceName {
-  BAIDU = 'baidu',
-  TENCENT = 'tencent',
-  ALIBABA = 'alibaba',
-  YOUDAO = 'youdao',
-  MOCK = 'mock'
-}
+export const TranslationServiceName = {
+  BAIDU: 'baidu',
+  TENCENT: 'tencent'
+} as const;
+
+/**
+ * 翻译服务名称类型
+ * 支持枚举值或直接使用字符串
+ */
+export type TranslationServiceNameType = 
+  (typeof TranslationServiceName)[keyof typeof TranslationServiceName]
 
 /**
  * 翻译服务配置接口
  */
 export interface TranslationServiceConfig {
-  name: TranslationServiceName;
+  name: TranslationServiceNameType;
   apiKey: string;
   apiSecret?: string;
   endpoint?: string;
@@ -146,11 +151,12 @@ export type TranslationRecord = Record<string, Record<string, string>>;
  */
 export interface TranslationOptions {
   // 翻译服务配置
-  services: TranslationServiceConfig[];
-  defaultService: TranslationServiceName;
+  service: TranslationServiceConfig;
 
   // 文件配置
   translateMapping?: string;  // 翻译记录文件路径，默认 '.i18n-translations.json'
+
+  // 翻译选项
   update?: boolean;  // 默认 false
   refresh?: boolean;  // 强制刷新所有翻译文件
 

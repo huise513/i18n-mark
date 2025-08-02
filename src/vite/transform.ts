@@ -4,56 +4,129 @@ import type {
 } from './types';
 import { markJsCode } from '../mark/mark-js';
 import { markVueCode } from '../mark/mark-vue';
-import {  extractCode, writeExtractFile } from '../extract';
+import { extractCode, writeExtractFile } from '../extract';
 import { extname } from 'node:path';
 import type { I18nEntryType } from '../shared/types';
+import { delay } from '../utils';
+import { TranslationManager } from '../translation';
 
 /**
  * 全局提取队列，用于收集所有并发的提取结果
  */
 class ExtractQueue {
-  private queue: I18nEntryType[] = [];
-  private isProcessing = false;
+  private extractEntries: I18nEntryType[] = [];
+  private isExtracting = false;
+  private isTranslating = false;
   private currentOptions: ResolvedOptions | null = null;
+  private pendingOperations: Promise<void>[] = [];
+  private translator: TranslationManager;
 
   constructor(options: ResolvedOptions) {
     this.currentOptions = options;
+    this.translator = new TranslationManager(options);
   }
 
   add(entries: I18nEntryType[]): void {
-    this.queue.push(...entries);
-    // 生产环境 统一处理
-    !this.currentOptions.isProduction && this.scheduleFlush();
+    this.extractEntries.push(...entries);
+    // 开发环境立即处理，生产环境延迟处理以收集更多条目
+    if (!this.currentOptions?.isProduction) {
+      this.scheduleExtract();
+    } else {
+      // 生产环境中延迟一小段时间，让更多文件完成transform
+      this.scheduleExtractWithDelay();
+    }
   }
 
-  
-  scheduleFlush(): void {
-    if (this.isProcessing) {
+  private scheduleExtractWithDelay(): void {
+    // 使用较短的延迟，确保在transform阶段就能处理完成
+    setTimeout(() => {
+      if (this.extractEntries.length > 0) {
+        this.scheduleExtract();
+      }
+    }, 50);
+  }
+
+  async scheduleExtract(): Promise<void> {
+    if (this.isExtracting) {
+      await delay(100);
+      this.scheduleExtract();
       return;
     }
-    this.isProcessing = true;
+    this.isExtracting = true;
     queueMicrotask(() => {
-      this.flush();
+      this.extract();
     });
   }
 
-  private flush(): void {
-    if (this.queue.length === 0 || !this.currentOptions) {
-      this.isProcessing = false;
+  private extract(): void {
+    if (this.extractEntries.length === 0 || !this.currentOptions) {
+      this.isExtracting = false;
       return;
     }
-
     try {
-      const uniqueEntries = this.deduplicateEntries(this.queue);
-      writeExtractFile(uniqueEntries, this.currentOptions, this.currentOptions.isProduction);
-      // 清空队列
-      this.queue = [];
+      const uniqueEntries = this.deduplicateEntries(this.extractEntries);
+      const keys = writeExtractFile(uniqueEntries, this.currentOptions, this.currentOptions.isProduction);
+      this.extractEntries = [];
+      this.scheduleTranslate(keys);
     } catch (error) {
       console.error('[ExtractQueue] Error flushing queue:', error);
     } finally {
-      this.isProcessing = false;
+      this.isExtracting = false;
     }
   }
+  async scheduleTranslate(keys: string[]): Promise<void> {
+    if (this.isTranslating) {
+      await delay(2000);
+      return this.scheduleTranslate(keys);
+    }
+    this.isTranslating = true;
+    return await this.translate(keys);
+  }
+  async translate(keys: string[]): Promise<void> {
+    if (!this.currentOptions?.translation) {
+      this.isTranslating = false;
+      return Promise.resolve();
+    }
+
+    // 如果没有待翻译的条目，直接返回
+    if (keys.length === 0) {
+      this.isTranslating = false;
+      return Promise.resolve();
+    }
+
+    const translatePromise = this.translator.translateKeys(keys).finally(() => {
+      this.isTranslating = false;
+      // 从待处理操作中移除已完成的翻译
+      const index = this.pendingOperations.indexOf(translatePromise);
+      if (index > -1) {
+        this.pendingOperations.splice(index, 1);
+      }
+    });
+
+    // 将翻译操作添加到待处理列表
+    this.pendingOperations.push(translatePromise);
+
+    return translatePromise;
+  }
+
+  /**
+   * 等待所有待处理的操作完成
+   * @returns Promise，当所有操作完成时解析
+   */
+  async waitForAllOperations(): Promise<void> {
+    if (this.pendingOperations.length === 0) {
+      return Promise.resolve();
+    }
+
+    // 等待所有当前的操作完成
+    await Promise.allSettled(this.pendingOperations);
+
+    // 递归检查是否有新的操作产生
+    if (this.pendingOperations.length > 0) {
+      return this.waitForAllOperations();
+    }
+  }
+
 
   /**
    * 去重条目
@@ -82,7 +155,7 @@ class ExtractQueue {
  */
 export class Transformer {
   private options: ResolvedOptions;
-  
+
   extractQueue: ExtractQueue;
 
   constructor(options: ResolvedOptions) {

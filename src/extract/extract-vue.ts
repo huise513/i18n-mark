@@ -49,7 +49,7 @@ function handlerTemplateAst(astNode: TemplateChildNode, entries: I18nEntryType[]
       break;
     case NodeTypes.INTERPOLATION:
       entries.push(...extractFromJsCode(astNode.loc.source, config));
-      logger.codeMatch(astNode.loc.source)
+      logger.line(`[Extract] Match: ${astNode.loc.source}`)
       break;
   }
 }
@@ -72,7 +72,7 @@ function handleElementProps(props: ElementNode["props"], entries: I18nEntryType[
                 } else {
                   entries.push(...extractFromJsCode(exp.loc.source, config));
                 }
-                logger.codeMatch(exp.loc.source)
+                logger.line(`[Extract] Match: ${exp.loc.source}`)
               }
               break;
           }

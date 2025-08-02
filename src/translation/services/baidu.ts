@@ -1,5 +1,5 @@
 import { BaseTranslationService } from "../base";
-import { TranslationResult, UsageLimit, TranslationServiceConfig, TranslationErrorType } from "../../shared/types";
+import { TranslationResult, UsageLimit, TranslationServiceConfig, TranslationErrorType, TranslationServiceName } from "../../shared/types";
 import { logger } from "../../shared/logger";
 
 /**
@@ -7,7 +7,7 @@ import { logger } from "../../shared/logger";
  * API 文档: https://cloud.baidu.com/doc/MT/s/4kqryjku9
  */
 export class BaiduTranslateService extends BaseTranslationService {
-  name = 'baidu';
+  name = TranslationServiceName.BAIDU;
   private readonly endpoint = 'https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1';
   private accessToken: string | null = null;
   private tokenExpireTime: number = 0;
@@ -43,7 +43,7 @@ export class BaiduTranslateService extends BaseTranslationService {
         await this.handleHttpError(response, text);
       }
       const data = await response.json();
-      logger.codeNormal('[Baidu] Translating: ', `"${text}" from ${from} to ${to}`);
+      logger.line(`[Baidu] Translating: ${text} from ${from} to ${to}`);
       return this.parseResponse(data, text);
     } catch (error) {
       logger.error(`[Baidu] Translation error: "${text}" from ${from} to ${to}: ${error.message}`);
@@ -136,12 +136,8 @@ export class BaiduTranslateService extends BaseTranslationService {
       if (data.error) {
         throw new Error(`Access token error: ${data.error_description || data.error}`);
       }
-
       this.accessToken = data.access_token;
-      // expires_in是秒数，转换为毫秒并加上当前时间
       this.tokenExpireTime = Date.now() + (data.expires_in * 1000);
-
-      console.log(`[Baidu] Access token refreshed, expires at: ${new Date(this.tokenExpireTime).toISOString()}`);
     } catch (error) {
       console.error(`[Baidu] Failed to refresh access token:`, error);
       throw error;

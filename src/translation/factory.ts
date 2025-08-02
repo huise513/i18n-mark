@@ -1,4 +1,4 @@
-import { TranslationService, TranslationServiceConfig, TranslationServiceName } from "../shared/types";
+import { TranslationService, TranslationServiceConfig, TranslationServiceName, TranslationServiceNameType } from "../shared/types";
 import { BaiduTranslateService } from "./services/baidu";
 import { TencentTranslateService } from "./services/tencent";
 
@@ -7,7 +7,7 @@ import { TencentTranslateService } from "./services/tencent";
  * 负责创建和管理翻译服务实例
  */
 export class TranslationServiceFactory {
-  private static services = new Map<TranslationServiceName, typeof BaiduTranslateService>();
+  private static services = new Map<string, typeof BaiduTranslateService>();
 
   static {
     // 注册内置翻译服务
@@ -18,7 +18,7 @@ export class TranslationServiceFactory {
   /**
    * 注册翻译服务
    */
-  static register(name: TranslationServiceName, serviceClass: any) {
+  static register(name: string, serviceClass: any) {
     this.services.set(name, serviceClass);
   }
 
@@ -38,14 +38,14 @@ export class TranslationServiceFactory {
   /**
    * 获取所有支持的服务名称
    */
-  static getSupportedServices(): TranslationServiceName[] {
+  static getSupportedServices(): string[] {
     return Array.from(this.services.keys());
   }
 
   /**
    * 检查服务是否支持
    */
-  static isSupported(name: TranslationServiceName): boolean {
+  static isSupported(name: string): boolean {
     return this.services.has(name);
   }
 }

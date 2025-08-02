@@ -26,16 +26,16 @@ export class TranslationRecordManager {
       if (existFile(this.recordFilePath)) {
         const content = getCodeByPath(this.recordFilePath);
         this.record = JSON.parse(content);
-        logger.info(`Loaded translation record from ${this.recordFilePath}`);
+        logger.file(`Loaded translation record from ${this.recordFilePath}`);
       } else {
         this.record = {};
-        logger.info('Translation record file not found, starting with empty record');
+        logger.file('Translation record file not found, starting with empty record');
       }
     } catch (error) {
       logger.error(`Failed to load translation record: ${error.message}`);
       this.record = {};
     }
-    
+
     return this.record;
   }
 
@@ -56,7 +56,7 @@ export class TranslationRecordManager {
 
       // 保存文件
       writeFileByCode(this.recordFilePath, JSON.stringify(this.record, null, 2));
-      logger.info(`Saved translation record to ${this.recordFilePath}`);
+      logger.file(`Saved translation record to ${this.recordFilePath}`);
     } catch (error) {
       logger.error(`Failed to save translation record: ${error.message}`);
       throw error;
@@ -90,7 +90,7 @@ export class TranslationRecordManager {
       }
       this.record[key][sourceLang] = value;
     }
-    logger.info(`Initialized ${Object.keys(sourceTexts).length} source translations for ${sourceLang}`);
+    logger.line(`Initialized ${Object.keys(sourceTexts).length} source translations for ${sourceLang}`);
   }
 
   /**
@@ -98,7 +98,7 @@ export class TranslationRecordManager {
    */
   forceUpdateTranslation(key: string, translations: Record<string, string>): void {
     this.record[key] = { ...this.record[key], ...translations };
-    logger.info(`Force updated translation for key: ${key}`);
+    logger.line(`Force updated translation for key: ${key}`);
   }
 
   /**
@@ -106,12 +106,12 @@ export class TranslationRecordManager {
    */
   batchImportTranslations(translations: TranslationRecord): void {
     let importCount = 0;
-    
+
     for (const [key, langTranslations] of Object.entries(translations)) {
       if (!this.record[key]) {
         this.record[key] = {};
       }
-      
+
       for (const [lang, translation] of Object.entries(langTranslations)) {
         if (translation && translation.trim()) {
           this.record[key][lang] = translation;
@@ -119,8 +119,6 @@ export class TranslationRecordManager {
         }
       }
     }
-    
-    logger.info(`Batch imported ${importCount} translations`);
   }
 
   /**
@@ -128,7 +126,7 @@ export class TranslationRecordManager {
    */
   syncToLanguageFiles(outputDir: string, langs: string[]): void {
     const resolvedOutputDir = resolvePath(outputDir);
-    
+
     // 确保输出目录存在
     if (!existsSync(resolvedOutputDir)) {
       mkdirSync(resolvedOutputDir, { recursive: true });
@@ -136,7 +134,7 @@ export class TranslationRecordManager {
 
     for (const lang of langs) {
       const langFilePath = `${resolvedOutputDir}/${lang}.json`;
-      
+
       try {
         // 读取现有语言文件
         let langData: Record<string, string> = {};
@@ -157,7 +155,7 @@ export class TranslationRecordManager {
         // 保存语言文件
         if (hasChanges) {
           writeFileByCode(langFilePath, JSON.stringify(langData, null, 2));
-          logger.info(`Updated language file: ${langFilePath}`);
+          logger.file(`Updated language file: ${langFilePath}`);
         }
       } catch (error) {
         logger.error(`Failed to sync language file ${langFilePath}: ${error.message}`);
@@ -172,7 +170,7 @@ export class TranslationRecordManager {
     if (forceUpdate) {
       return allKeys;
     }
-    
+
     return allKeys.filter(key => !this.isTranslated(key, targetLang));
   }
 
@@ -190,13 +188,13 @@ export class TranslationRecordManager {
 
     for (const lang of langs) {
       translatedKeys[lang] = 0;
-      
+
       for (const translations of Object.values(this.record)) {
         if (translations[lang]) {
           translatedKeys[lang]++;
         }
       }
-      
+
       completionRate[lang] = totalKeys > 0 ? translatedKeys[lang] / totalKeys : 0;
     }
 
@@ -222,7 +220,7 @@ export class TranslationRecordManager {
     }
 
     if (removedCount > 0) {
-      logger.info(`Cleaned up ${removedCount} invalid translation records`);
+      logger.line(`Cleaned up ${removedCount} invalid translation records`);
     }
   }
 
@@ -238,7 +236,7 @@ export class TranslationRecordManager {
    */
   reset(): void {
     this.record = {};
-    logger.info('Translation record reset');
+    logger.line('Translation record reset');
   }
 
   /**
@@ -247,7 +245,7 @@ export class TranslationRecordManager {
    */
   forceRefreshLanguageFiles(outputDir: string, langs: string[]): void {
     const resolvedOutputDir = resolvePath(outputDir);
-    
+
     // 确保输出目录存在
     if (!existsSync(resolvedOutputDir)) {
       mkdirSync(resolvedOutputDir, { recursive: true });
@@ -267,12 +265,11 @@ export class TranslationRecordManager {
       try {
         // 强制重写语言文件
         writeFileByCode(langFilePath, JSON.stringify(langData, null, 2));
-        logger.info(`Force refreshed language file: ${langFilePath} with ${Object.keys(langData).length} keys`);
+        logger.line(`Force refreshed language file: ${langFilePath} with ${Object.keys(langData).length} keys`);
       } catch (error) {
         logger.error(`Failed to force refresh language file ${langFilePath}: ${error.message}`);
       }
     }
-
-    logger.info(`Force refreshed all language files for ${langs.length} languages`);
+    logger.file(`Force refreshed all language files for ${langs.length} languages`);
   }
 }

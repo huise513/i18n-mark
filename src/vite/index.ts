@@ -49,9 +49,10 @@ export default function vitePluginI18nMark(options?: ViteI18nMarkPluginOptions):
       }
     },
 
-    buildEnd() {
-      if (resolvedOptions.isProduction) {
-        currentTransformer?.extractQueue.scheduleFlush();
+    async generateBundle() {
+      // 在生产环境中，等待所有提取和翻译操作完成
+      if (resolvedOptions.isProduction && currentTransformer) {
+        await currentTransformer.extractQueue.waitForAllOperations();
       }
     }
   };
